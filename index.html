@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Cuestionarios - AED (UTN)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar / Header estilo Plataforma Universitaria -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    AED
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-900 text-sm sm:text-base leading-tight">Simulador de Cuestionarios</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Algoritmos y Estructuras de Datos · Banco Completo (Fichas 14 a 32)</p>
+                </div>
+            </div>
+
+            <!-- Barra de progreso y estado activo -->
+            <div id="header-progress-container" class="hidden flex-1 max-w-xs sm:max-w-sm mx-2">
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                    <span id="header-progress-text">Pregunta 1 de 10</span>
+                    <span id="header-score-badge" class="text-indigo-600 font-semibold">En curso</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="header-progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <button id="btn-back-menu" onclick="confirmReturnToMenu()" class="hidden text-xs sm:text-sm font-medium text-slate-600 hover:text-indigo-600 px-3 py-2 rounded-lg hover:bg-slate-100 transition">
+                Configurar
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+        <!-- PANTALLA 1: CONFIGURACIÓN DEL CUESTIONARIO -->
+        <section id="setup-screen" class="space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        Autoevaluación Interactiva
+                    </span>
+                    <span id="total-bank-badge" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        102 Preguntas Reales de Examen
+                    </span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">Prepará tu examen de AED</h2>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                    Practicá con <strong>todas las preguntas teóricas y de código</strong> extraídas de los cuestionarios oficiales del PDF (Cuestionarios 14, 16, 22, 27, 28, 29, 30, 31 y 32). Incluye preguntas de opción única, opción múltiple y notas explicativas de cátedra.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <!-- Selección de Modo / Cantidad -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-semibold text-slate-800">1. Modalidad y Cantidad</label>
+                        <div class="space-y-2.5">
+                            <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/60">
+                                <input type="radio" name="quiz-mode" value="short" checked class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <div class="font-semibold text-sm text-slate-900">Examen Rápido (15 preguntas)</div>
+                                    <div class="text-xs text-slate-500">Selección aleatoria mezclando todas las fichas.</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/60">
+                                <input type="radio" name="quiz-mode" value="mid" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <div class="font-semibold text-sm text-slate-900">Simulacro Parcial (30 preguntas)</div>
+                                    <div class="text-xs text-slate-500">Práctica intensiva con 30 preguntas al azar.</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/60">
+                                <input type="radio" name="quiz-mode" value="full" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <div id="full-mode-label" class="font-semibold text-sm text-slate-900">Maratón Completo (Todas las preguntas — 102)</div>
+                                    <div class="text-xs text-slate-500">Repasá el 100% del banco depurado del PDF.</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/60">
+                                <input type="radio" name="quiz-mode" value="topic" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                                <div class="w-full">
+                                    <div class="font-semibold text-sm text-slate-900">Por Cuestionario / Ficha Específica</div>
+                                    <select id="topic-select" onclick="document.querySelector('input[value=\'topic\']').checked = true" class="mt-2 w-full text-xs sm:text-sm rounded-lg border-slate-300 bg-white py-2 px-3 border focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        <option value="Cuestionario 14">Cuestionario 14 · Recursión y Stack (11 preg.)</option>
+                                        <option value="Cuestionario 16">Cuestionario 16 · Búsqueda y Selección Directa (10 preg.)</option>
+                                        <option value="Cuestionario 22">Cuestionario 22 · Ordenamiento Simple, Shellsort y Heapsort (9 preg.)</option>
+                                        <option value="Cuestionario 27">Cuestionario 27 · Complejidad Algorítmica y Big O (20 preg.)</option>
+                                        <option value="Cuestionario 28">Cuestionario 28 · Abstracción, Pilas y Colas (10 preg.)</option>
+                                        <option value="Cuestionario 29">Cuestionario 29 · Árboles Binarios y ABB (10 preg.)</option>
+                                        <option value="Cuestionario 30">Cuestionario 30 · Grafos y Matrices de Adyacencia (10 preg.)</option>
+                                        <option value="Cuestionario 31">Cuestionario 31 · Divide y Vencerás y Quicksort (8 preg.)</option>
+                                        <option value="Cuestionario 32">Cuestionario 32 · Estrategias de Resolución y Ocho Reinas (14 preg.)</option>
+                                    </select>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de Corrección y Mezcla -->
+                    <div class="space-y-4">
+                        <label class="block text-sm font-semibold text-slate-800">2. Preferencias de Evaluación</label>
+
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold text-sm text-slate-900">Feedback inmediato</div>
+                                    <div class="text-xs text-slate-500">Corregir cada pregunta apenas la respondés.</div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-immediate" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+
+                            <hr class="border-slate-200">
+
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold text-sm text-slate-900">Mezclar orden de preguntas</div>
+                                    <div class="text-xs text-slate-500">Desactivá si querés hacer una ficha en orden correlativo.</div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-shuffle-questions" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+
+                            <hr class="border-slate-200">
+
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold text-sm text-slate-900">Mezclar opciones</div>
+                                    <div class="text-xs text-slate-500">Cambia el orden de las respuestas en cada intento.</div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-shuffle-options" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 leading-relaxed">
+                            <strong>Tip de examen:</strong> Prestá atención a las etiquetas <span class="font-semibold underline">Selección múltiple</span>. En esas preguntas podés marcar más de una casilla antes de comprobar tu respuesta.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+                    <button onclick="startQuiz()" class="w-full sm:w-auto px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                        <span>Comenzar Cuestionario</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANTALLA 2: CUESTIONARIO ACTIVO -->
+        <section id="quiz-screen" class="hidden space-y-5">
+            <!-- Navegador rápido de preguntas (estilo Moodle) -->
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Navegación del intento</span>
+                    <span id="mode-indicator-label" class="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">Modo Feedback Inmediato</span>
+                </div>
+                <div id="question-nav-pills" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <!-- Tarjeta de Pregunta -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-8 shadow-sm">
+                <!-- Metadatos de la pregunta -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span id="q-number-badge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-900 text-white">
+                            Pregunta 1
+                        </span>
+                        <span id="q-topic-badge" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700">
+                            Ficha 14
+                        </span>
+                        <span id="q-type-badge" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            Seleccione una
+                        </span>
+                    </div>
+                    <span id="q-points-badge" class="text-xs font-medium text-slate-500">Puntúa 1,00</span>
+                </div>
+
+                <!-- Enunciado -->
+                <div id="q-text" class="text-slate-900 font-medium text-base sm:text-lg leading-relaxed mb-4"></div>
+
+                <!-- Ilustración SVG Opcional (para gráficos Tkinter y árbol Fibonacci) -->
+                <div id="q-visual-wrapper" class="hidden mb-5 flex justify-center">
+                    <div id="q-visual" class="p-4 bg-slate-50 border border-slate-200 rounded-xl inline-flex flex-col items-center"></div>
+                </div>
+
+                <!-- Bloque de Código Opcional -->
+                <div id="q-code-wrapper" class="hidden mb-5">
+                    <div class="bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
+                        <div class="px-4 py-1.5 bg-slate-800/80 text-[11px] font-mono text-slate-400 flex justify-between items-center">
+                            <span>Python 3</span>
+                            <span>AED</span>
+                        </div>
+                        <pre class="p-4 text-xs sm:text-sm font-mono text-slate-100 overflow-x-auto leading-relaxed"><code id="q-code"></code></pre>
+                    </div>
+                </div>
+
+                <!-- Lista de Opciones Seleccionables -->
+                <div id="q-options" class="space-y-3"></div>
+
+                <!-- Caja de Feedback / Explicación -->
+                <div id="q-feedback" class="hidden mt-6 p-4 sm:p-5 rounded-xl border text-sm leading-relaxed"></div>
+
+                <!-- Botonera Inferior -->
+                <div class="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                    <button id="btn-prev" onclick="prevQuestion()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium text-sm transition disabled:opacity-40 disabled:pointer-events-none">
+                        &larr; Anterior
+                    </button>
+
+                    <div class="flex items-center gap-3 ml-auto">
+                        <button id="btn-check" onclick="checkCurrentAnswer()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm transition">
+                            Comprobar respuesta
+                        </button>
+                        <button id="btn-next" onclick="nextQuestion()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
+                            Siguiente &rarr;
+                        </button>
+                        <button id="btn-finish" onclick="finishQuiz()" class="hidden px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-sm transition">
+                            Finalizar y ver nota
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANTALLA 3: RESUMEN FINAL Y CALIFICACIÓN -->
+        <section id="results-screen" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm text-center">
+                <div id="result-status-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-3"></div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Revisión del intento</h2>
+                <p class="text-slate-500 text-sm mt-1">Escala de calificación estándar UTN (0 a 10 puntos)</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto mt-6">
+                    <div class="p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+                        <div class="text-xs font-medium text-indigo-700">Calificación</div>
+                        <div id="res-grade" class="text-2xl sm:text-3xl font-bold text-indigo-900 mt-1">0 / 10</div>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-medium text-slate-600">Porcentaje</div>
+                        <div id="res-percent" class="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">0%</div>
+                    </div>
+                    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                        <div class="text-xs font-medium text-emerald-700">Correctas</div>
+                        <div id="res-correct" class="text-2xl sm:text-3xl font-bold text-emerald-800 mt-1">0</div>
+                    </div>
+                    <div class="p-4 rounded-xl bg-rose-50 border border-rose-100">
+                        <div class="text-xs font-medium text-rose-700">Incorrectas / Parc.</div>
+                        <div id="res-incorrect" class="text-2xl sm:text-3xl font-bold text-rose-800 mt-1">0</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-3 mt-8">
+                    <button onclick="retrySameQuiz()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
+                        Reintentar mezclando opciones
+                    </button>
+                    <button onclick="returnToMenu()" class="px-5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
+                        Elegir otro tema o cantidad
+                    </button>
+                </div>
+            </div>
+
+            <!-- Desglose detallado de todas las preguntas -->
+            <div class="space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 px-1">
+                    <h3 class="text-lg font-bold text-slate-900">Desglose detallado de respuestas</h3>
+                    <div class="flex items-center gap-2">
+                        <button id="filter-all-btn" onclick="filterBreakdown('all')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition">
+                            Todas
+                        </button>
+                        <button id="filter-wrong-btn" onclick="filterBreakdown('wrong')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition">
+                            Solo incorrectas / parciales
+                        </button>
+                    </div>
+                </div>
+                <div id="results-breakdown" class="space-y-4"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Pie de página con firma -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 mt-auto">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm text-slate-500">
+            <span>Algoritmos y Estructuras de Datos · Banco de Práctica</span>
+            <span class="font-semibold text-indigo-600 tracking-wide">creado by la chad sara avila</span>
+        </div>
+    </footer>
+
+    <!-- Modal de confirmación personalizado (sin usar alert/confirm) -->
+    <div id="custom-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+            <h3 id="modal-title" class="text-lg font-bold text-slate-900">¿Volver a la configuración?</h3>
+            <p id="modal-body" class="text-sm text-slate-600 mt-2">Perderás el progreso del cuestionario actual.</p>
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-medium">Cancelar</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ilustración SVG del árbol de llamadas recursivas de Fibonacci F(4)
+        const VISUALS = {
+            fiboTree: `
+                <svg width="260" height="210" viewBox="0 0 260 210" xmlns="http://www.w3.org/2000/svg" class="font-mono text-xs">
+                    <line x1="130" y1="30" x2="75" y2="70" stroke="#334155" stroke-width="1.5"/>
+                    <line x1="130" y1="30" x2="195" y2="70" stroke="#334155" stroke-width="1.5"/>
+                    <line x1="75" y1="95" x2="45" y2="130" stroke="#334155" stroke-width="1.5"/>
+                    <line x1="75" y1="95" x2="105" y2="130" stroke="#334155" stroke-width="1.5"/>
+                    <line x1="195" y1="95" x2="168" y2="130" stroke="#334155" stroke-width="1.5"/>
+                    <line x1="195" y1="95" x2="222" y2="130" stroke="#334155" stroke-width="1.5"/>
+                    <line x1="45" y1="155" x2="25" y2="185" stroke="#334155" stroke-width="1.5"/>
+                    <line x1="45" y1="155" x2="68" y2="185" stroke="#334155" stroke-width="1.5"/>
+                    <rect x="108" y="8" width="44" height="24" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" rx="3"/>
+                    <text x="130" y="24" text-anchor="middle" fill="#1e293b" font-weight="bold">F(4)</text>
+                    <rect x="53" y="70" width="44" height="24" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" rx="3"/>
+                    <text x="75" y="86" text-anchor="middle" fill="#1e293b" font-weight="bold">F(3)</text>
+                    <rect x="173" y="70" width="44" height="24" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5" rx="3"/>
+                    <text x="195" y="86" text-anchor="middle" fill="#1e293b" font-weight="bold">F(2)</text>
+                    <rect x="23" y="130" width="44" height="24" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5" rx="3"/>
+                    <text x="45" y="146" text-anchor="middle" fill="#1e293b" font-weight="bold">F(2)</text>
+                    <rect x="85" y="130" width="40" height="24" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="3"/>
+                    <text x="105" y="146" text-anchor="middle" fill="#1e293b">F(1)</text>
+                    <rect x="148" y="130" width="40" height="24" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="3"/>
+                    <text x="168" y="146" text-anchor="middle" fill="#1e293b">F(1)</text>
+                    <rect x="202" y="130" width="40" height="24" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="3"/>
+                    <text x="222" y="146" text-anchor="middle" fill="#1e293b">F(0)</text>
+                    <rect x="6" y="182" width="38" height="22" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="3"/>
+                    <text x="25" y="197" text-anchor="middle" fill="#1e293b">F(1)</text>
+                    <rect x="50" y="182" width="38" height="22" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="3"/>
+                    <text x="69" y="197" text-anchor="middle" fill="#1e293b">F(0)</text>
+                </svg>`
+        };
+
+        // Banco depurado con las 102 preguntas (sin gráficos Tkinter/colores ni preguntas sobre personajes célebres)
+        const QUESTION_BANK = [
+            // ================= CUESTIONARIO 14 (11 PREGUNTAS) =================
+            {
+                id: "14-1",
+                topic: "Cuestionario 14",
+                multiple: false,
+                text: "El cálculo del valor a<sup>n</sup> (asumiendo <code>a > 0</code> y <code>n >= 0</code> y sabiendo que si <code>n = 0</code> entonces <code>a<sup>0</sup> = 1</code>) es igual a multiplicar n veces el número a por sí mismo. ¿Cuál de las siguientes sería una definición recursiva matemáticamente correcta de la operación <code>potencia(a, n)</code>?",
+                options: [
+                    { text: "potencia(a, n) = 1 si n == 0; = a * potencia(a, n - 1) si n > 0", correct: true },
+                    { text: "potencia(a, n) = 1 si n == 0; = a * potencia(a, n) si n > 0", correct: false },
+                    { text: "potencia(a, n) = 1 si n == 0; = a * potencia(a - 1, n) si n > 0", correct: false },
+                    { text: "potencia(a, n) = 1 si n == 0; = a + potencia(a, n - 1) si n > 0", correct: false }
+                ],
+                explanation: "En el paso recursivo (n > 0) debe mantenerse la base 'a' constante y decrementar el exponente a 'n - 1' para converger al caso base n == 0."
+            },
+            {
+                id: "14-2",
+                topic: "Cuestionario 14",
+                multiple: false,
+                text: "Suponga que se quiere plantear una definición recursiva del concepto de <strong>bosque</strong>. ¿Cuál de las siguientes propuestas generales es correcta y constituye la mejor definición?",
+                options: [
+                    { text: "Un bosque es un conjunto de árboles que puede estar vacío, o puede contener uno o más árboles agrupados con otro bosque.", correct: true },
+                    { text: "Un bosque es un bosque.", correct: false },
+                    { text: "Un bosque es un conjunto de árboles que puede estar vacío, o puede contener n árboles (con n > 0).", correct: false },
+                    { text: "Un bosque es un conjunto que puede contener uno o más árboles agrupados con otro bosque.", correct: false }
+                ],
+                explanation: "Una buena definición recursiva contempla el caso base (conjunto vacío) y la parte recursiva (uno o más árboles agrupados con otro bosque)."
+            },
+            {
+                id: "14-3",
+                topic: "Cuestionario 14",
+                multiple: true,
+                text: "¿Cuáles de los siguientes son factores esenciales a tener en cuenta cuando se realiza el análisis de la eficiencia de un algoritmo (por ejemplo, para comparar rendimiento entre dos algoritmos que resuelven el mismo problema)?",
+                options: [
+                    { text: "El tiempo de ejecución.", correct: true },
+                    { text: "El consumo de memoria.", correct: true },
+                    { text: "La complejidad aparente del código fuente.", correct: true },
+                    { text: "El diseño de la interfaz de usuario.", correct: false }
+                ],
+                explanation: "En AED se evalúan tres factores: tiempo de ejecución, consumo de memoria y complejidad aparente (claridad/mantenibilidad) del código fuente."
+            },
+            {
+                id: "14-4",
+                topic: "Cuestionario 14",
+                multiple: false,
+                text: "Suponga que la versión recursiva de la función para el cálculo del factorial fuese redefinida en la forma siguiente. ¿Cuál es el problema (si lo hubiese) con esta versión?",
+                code: "def factorial(n):\n    f = n * factorial(n - 1)\n    if n == 0:\n        return 1\n    return f",
+                options: [
+                    { text: "Contiene todos los elementos de una función recursiva bien planteada, pero en el orden incorrecto: la condición para chequear si n es cero debería estar antes que la llamada recursiva para evitar la recursión infinita.", correct: true },
+                    { text: "No hay ningún problema. Funciona correctamente.", correct: false },
+                    { text: "Para calcular el factorial necesita un ciclo for que genere los números a multiplicar.", correct: false },
+                    { text: "La función siempre retorna un 1, sin importar cuál sea el valor de n.", correct: false }
+                ],
+                explanation: "Al ejecutar primero 'factorial(n - 1)' antes de comprobar 'if n == 0:', nunca alcanza el caso base y provoca recursión infinita (RecursionError)."
+            },
+            {
+                id: "14-5",
+                topic: "Cuestionario 14",
+                multiple: false,
+                text: "¿Hay algún problema o contraindicación respecto del uso y aplicación de esta versión recursiva para la gestión de un menú de opciones?",
+                code: "def menu():\n    print('1. Opcion 1')\n    print('2. Opcion 2')\n    print('3. Salir')\n    op = int(input('Ingrese opcion: '))\n    if op == 1:\n        print('Eligio la opcion 1...')\n    elif op == 2:\n        print('Eligio la opcion 2...')\n    elif op == 3:\n        return\n    menu()",
+                options: [
+                    { text: "Esta versión recursiva posiblemente sea más simple y compacta que la versión basada en un ciclo, pero pide memoria de stack cada vez que se invoca, por lo que es más conveniente la iterativa.", correct: true },
+                    { text: "La versión recursiva que se mostró no funciona: sólo permite cargar una vez la opción elegida e inmediatamente se detiene.", correct: false },
+                    { text: "Esta versión recursiva es completamente equivalente a la versión iterativa. Da lo mismo usar cualquiera de las dos.", correct: false },
+                    { text: "No hay ningún problema ni contraindicación; es incluso preferible usarla siempre.", correct: false }
+                ],
+                explanation: "Si el programa permanece abierto continuamente (24/7), las sucesivas llamadas a menu() acumulan marcos en el stack y pueden provocar un overflow de stack."
+            },
+            {
+                id: "14-6",
+                topic: "Cuestionario 14",
+                multiple: false,
+                text: "Sabiendo que el producto <code>a * b</code> (con enteros <code>a >= 0</code> y <code>b >= 0</code>) equivale a sumar <code>b</code> veces el número <code>a</code>, ¿es correcto el siguiente planteo recursivo de <code>producto(a, b)</code>?",
+                code: "def producto(a, b):\n    if a == 0 or b == 0:\n        return 0\n    return a + producto(a, b - 1)",
+                options: [
+                    { text: "Sí. Es correcto.", correct: true },
+                    { text: "No. La función sugerida siempre retornará 0, sean cuales fuesen los valores de a y b.", correct: false },
+                    { text: "No. La propia definición previa del concepto de producto es incorrecta.", correct: false },
+                    { text: "No. La última línea debería decir return a + producto(a - 1, b - 1).", correct: false }
+                ],
+                explanation: "El planteo es completamente correcto: si a==0 o b==0 devuelve 0; caso contrario suma 'a' y reduce 'b' en 1 hasta alcanzar b == 0."
+            },
+            {
+                id: "14-7",
+                topic: "Cuestionario 14",
+                multiple: false,
+                text: "En la tabla comparativa entre las versiones iterativa y recursiva del cálculo del término n-ésimo de Fibonacci <code>F(n)</code>, ¿cuál es la estimación correcta para el <strong>tiempo de ejecución</strong> de ambos algoritmos?",
+                options: [
+                    { text: "Versión iterativa: tiempo proporcional a n (lineal). Versión recursiva: tiempo proporcional a bⁿ (exponencial, para algún b > 1).", correct: true },
+                    { text: "Versión iterativa: tiempo proporcional a n (lineal). Versión recursiva: tiempo proporcional a n (lineal).", correct: false },
+                    { text: "Versión iterativa: tiempo constante (no depende de n). Versión recursiva: tiempo proporcional a bⁿ (exponencial).", correct: false },
+                    { text: "Versión iterativa: tiempo proporcional a bⁿ (exponencial). Versión recursiva: tiempo proporcional a n (lineal).", correct: false }
+                ],
+                explanation: "La versión iterativa avanza en un solo ciclo O(n), mientras que la recursiva doble genera del orden de 1.6ⁿ / 1.8ⁿ llamadas (tiempo exponencial)."
+            },
+            {
+                id: "14-8",
+                topic: "Cuestionario 14",
+                multiple: true,
+                text: "¿Cuáles de las siguientes propuestas generales son ciertas en relación al segmento de memoria conocido como <strong>Stack Segment</strong>?",
+                options: [
+                    { text: "El Stack Segment funciona como una pila (o apilamiento) de datos (modalidad LIFO: Last In - First Out): el último dato en llegar se almacena en la cima del stack y será el primero en ser retirado.", correct: true },
+                    { text: "El Stack Segment se utiliza como soporte interno en el proceso de invocación a funciones (con o sin recursividad): se va llenando a medida que se desarrolla la cascada de invocaciones, y se vacía al regresar.", correct: true },
+                    { text: "El Stack Segment se utiliza solamente en el proceso de invocación a funciones recursivas.", correct: false },
+                    { text: "El Stack Segment funciona como una cola de datos (modalidad FIFO: First In - First Out).", correct: false }
+                ],
+                explanation: "El Stack Segment es una estructura LIFO que gestiona los registros de activación de TODAS las invocaciones a funciones, sean recursivas o no."
+            },
+            {
+                id: "14-9",
+                topic: "Cuestionario 14",
+                multiple: false,
+                visual: "fiboTree",
+                text: "Para calcular <code>fibo(4)</code> se calcula 2 veces <code>fibo(2)</code>, 3 veces <code>fibo(1)</code> y 2 veces <code>fibo(0)</code>. Suponga que se quiere calcular <code>t = fibo(6)</code>. ¿Cuántas veces en total la función <code>fibo()</code> se invoca para hacer más de una vez el mismo trabajo, <strong>SIN incluir</strong> en ese conteo a las invocaciones para obtener <code>fibo(0)</code> y <code>fibo(1)</code>?",
+                options: [
+                    { text: "10", correct: true },
+                    { text: "11", correct: false },
+                    { text: "12", correct: false },
+                    { text: "0", correct: false }
+                ],
+                explanation: "En el árbol de fibo(6): fibo(4) se invoca 2 veces, fibo(3) se invoca 3 veces y fibo(2) se invoca 5 veces. En total: 2 + 3 + 5 = 10 invocaciones."
+            },
+            {
+                id: "14-10",
+                topic: "Cuestionario 14",
+                multiple: true,
+                text: "¿En cuáles de las siguientes situaciones el uso de <strong>recursividad</strong> está efectivamente recomendado?",
+                options: [
+                    { text: "Recorrido y procesamiento de estructuras de datos no lineales como árboles y grafos.", correct: true },
+                    { text: "Generación y procesamiento de imágenes y gráficos fractales (figuras compuestas por versiones más simples de la misma figura original).", correct: true },
+                    { text: "Nunca.", correct: false },
+                    { text: "Siempre que se pueda escribir una definición recursiva del problema.", correct: false }
+                ],
+                explanation: "La recursividad se recomienda especialmente en estructuras jerárquicas/no lineales (árboles, grafos) y fractales; no siempre que exista una fórmula recursiva (como Fibonacci)."
+            },
+            {
+                id: "14-11",
+                topic: "Cuestionario 14",
+                multiple: true,
+                text: "¿Cuáles de las siguientes afirmaciones son CIERTAS en relación al sistema de coordenadas de pantalla?",
+                options: [
+                    { text: "El origen del sistema de coordenadas se encuentra en el punto superior izquierdo de la pantalla o de la ventana que se esté usando.", correct: true },
+                    { text: "Las filas de pantalla o de ventana con número de orden más bajo se encuentran más cerca del borde superior que las filas con número de orden más alto.", correct: true },
+                    { text: "Las filas de pantalla o de ventana con número de orden más alto se encuentran más cerca del borde superior.", correct: false },
+                    { text: "El origen del sistema de coordenadas se encuentra en el punto inferior izquierdo de la pantalla o ventana.", correct: false }
+                ],
+                explanation: "El punto (0, 0) está en la esquina superior izquierda y la coordenada Y aumenta hacia abajo."
+            },
+            // ================= CUESTIONARIO 16 (10 PREGUNTAS) =================
+            {
+                id: "16-1",
+                topic: "Cuestionario 16",
+                multiple: false,
+                text: "¿Cuál es la idea principal en la que se basa el algoritmo de ordenamiento de <strong>Selección Directa</strong> que se presentó en clase (ordenando de menor a mayor)?",
+                options: [
+                    { text: "Realizar varias pasadas sobre el arreglo, en cada pasada seleccionar el menor valor de los que aún no han sido ordenados, y colocarlo en su casilla definitiva.", correct: true },
+                    { text: "Realizar varias pasadas comparando cada elemento con el que le sigue inmediatamente e intercambiarlos si están desordenados.", correct: false },
+                    { text: "Seleccionar un elemento pivot x, pasar mayores a la derecha y menores a la izquierda y aplicar recursivamente a ambas mitades.", correct: false },
+                    { text: "Realizar una sola pasada sobre el arreglo comparando elementos adyacentes.", correct: false }
+                ],
+                explanation: "Selección Directa fija una posición i y busca en el resto del arreglo el menor elemento disponible para ubicarlo definitivamente en v[i]."
+            },
+            {
+                id: "16-2",
+                topic: "Cuestionario 16",
+                multiple: false,
+                text: "En la implementación de Selección Directa para ordenar de menor a mayor, ¿qué efecto se produciría si la instrucción condicional <code>if v[i] > v[j]:</code> fuese reemplazada por <code>if v[i] < v[j]:</code>?",
+                code: "def selection_sort(v):\n    n = len(v)\n    for i in range(n - 1):\n        for j in range(i + 1, n):\n            if v[i] < v[j]:\n                v[i], v[j] = v[j], v[i]",
+                options: [
+                    { text: "El arreglo sería ordenado, pero ahora de mayor a menor.", correct: true },
+                    { text: "Provocará que el programa se interrumpa con un mensaje de error en la primera comparación.", correct: false },
+                    { text: "No causaría ningún efecto particular: el arreglo seguiría siendo ordenado de menor a mayor.", correct: false },
+                    { text: "Provocará que el arreglo permanezca siempre sin cambio alguno.", correct: false }
+                ],
+                explanation: "Al cambiar '>' por '<', en cada pasada los valores mayores suben a las primeras posiciones, ordenando de mayor a menor."
+            },
+            {
+                id: "16-3",
+                topic: "Cuestionario 16",
+                multiple: false,
+                text: "¿Cuántas comparaciones hace el algoritmo de <strong>Búsqueda Secuencial</strong> para encontrar un valor x en un arreglo de n componentes en el peor caso posible?",
+                options: [
+                    { text: "n comparaciones.", correct: true },
+                    { text: "log₂(n) comparaciones.", correct: false },
+                    { text: "n² comparaciones.", correct: false },
+                    { text: "Una sola comparación, siempre.", correct: false }
+                ],
+                explanation: "En el peor caso (el elemento está en la última posición o no está en el arreglo), la búsqueda secuencial revisa las n casillas."
+            },
+            {
+                id: "16-4",
+                topic: "Cuestionario 16",
+                multiple: false,
+                text: "Suponga que propone la siguiente variante para el algoritmo de búsqueda secuencial. ¿Hay algún inconveniente o problema con esta variante?",
+                code: "def linear_search(v, x):\n    r = -1\n    for i in range(len(v)):\n        if x == v[i]:\n            r = i\n    return r",
+                options: [
+                    { text: "Hay un inconveniente: encuentra el valor buscado (si existía) pero no corta el ciclo de búsqueda al encontrarlo, con lo que siempre se hacen n comparaciones.", correct: true },
+                    { text: "La variante propuesta funciona correctamente y es óptima.", correct: false },
+                    { text: "La variante propuesta no funciona: sólo llega a analizar el contenido de la primera casilla.", correct: false },
+                    { text: "La variante propuesta funciona solamente si el valor x está en el arreglo.", correct: false }
+                ],
+                explanation: "Al no hacer 'return i' (ni break) cuando encuentra x, recorre innecesariamente todo el vector y además devolvería la última aparición en lugar de la primera."
+            },
+            {
+                id: "16-5",
+                topic: "Cuestionario 16",
+                multiple: false,
+                text: "Suponga que propone esta otra variante para el algoritmo de búsqueda secuencial. ¿Funciona correctamente? Si no funciona, ¿cuál es el problema?",
+                code: "def linear_search(v, x):\n    n = len(v)\n    for i in range(n):\n        if x == v[i]:\n            return i\n        else:\n            return -1",
+                options: [
+                    { text: "La variante propuesta no funciona correctamente: sólo llega a analizar el contenido de la primera casilla.", correct: true },
+                    { text: "La variante propuesta funciona solamente si el valor x está en el arreglo (falla si x no está).", correct: false },
+                    { text: "La variante propuesta funciona correctamente.", correct: false },
+                    { text: "La variante propuesta provoca un error de intérprete.", correct: false }
+                ],
+                explanation: "El 'return -1' dentro de la rama 'else' corta el ciclo en la primera iteración (i = 0) si el primer elemento no coincide con x."
+            },
+            {
+                id: "16-6",
+                topic: "Cuestionario 16",
+                multiple: true,
+                text: "¿En cuáles de los siguientes casos es aplicable el algoritmo de <strong>búsqueda binaria</strong> en un arreglo?",
+                options: [
+                    { text: "El arreglo en el cual se debe realizar la búsqueda está ordenado y permanecerá sin cambios.", correct: true },
+                    { text: "El arreglo está desordenado, se nos permite ordenarlo, luego permanecerá sin cambios y debemos realizar muchas búsquedas.", correct: true },
+                    { text: "El arreglo en el cual se debe realizar la búsqueda está desordenado y no se nos permite ordenarlo.", correct: false },
+                    { text: "El arreglo está desordenado, se ordena, pero luego podrá alterarse su contenido entre búsquedas.", correct: false }
+                ],
+                explanation: "La búsqueda binaria requiere que el vector esté ordenado y mantenga ese orden durante las consultas."
+            },
+            {
+                id: "16-7",
+                topic: "Cuestionario 16",
+                multiple: false,
+                text: "Suponga que propone la siguiente variante para el algoritmo de búsqueda binaria. ¿Funciona correctamente? Si no funciona, ¿cuál es el problema?",
+                code: "def binary_search(v, x):\n    izq, der = 0, len(v) - 1\n    while izq <= der:\n        c = (izq + der) // 2\n        if x == v[c]:\n            return c\n        else:\n            return -1\n        if x < v[c]:\n            der = c - 1\n        else:\n            izq = c + 1\n    return -1",
+                options: [
+                    { text: "La variante propuesta no funciona correctamente: sólo llega a analizar el contenido de la casilla del centro del arreglo.", correct: true },
+                    { text: "Provoca un error de intérprete y no llega a arrancar.", correct: false },
+                    { text: "Funciona solamente si el valor x está en el arreglo.", correct: false },
+                    { text: "La variante propuesta funciona correctamente.", correct: false }
+                ],
+                explanation: "El 'else: return -1' inmediatamente después de comparar con v[c] hace que la función termine en la primera iteración tras mirar solo el centro inicial."
+            },
+            {
+                id: "16-8",
+                topic: "Cuestionario 16",
+                multiple: false,
+                text: "¿Qué pasaría con la función estándar <code>binary_search(v, x)</code> si el arreglo <code>v</code> contuviese cadenas de caracteres en cada casillero (en lugar de números), y el parámetro <code>x</code> contuviese también una cadena de caracteres?",
+                options: [
+                    { text: "La función mostrada funcionaría correctamente de todos modos.", correct: true },
+                    { text: "No provocaría interrupción, pero funcionaría en forma incorrecta y retornaría siempre -1.", correct: false },
+                    { text: "Provocaría un error en tiempo de ejecución al intentar determinar si x < v[c].", correct: false },
+                    { text: "Funcionaría solamente si el valor x está en el arreglo.", correct: false }
+                ],
+                explanation: "En Python los operadores ==, < y > comparan cadenas lexicográficamente sin problemas, por lo que la búsqueda binaria funciona igual siempre que el arreglo esté ordenado."
+            },
+            {
+                id: "16-9",
+                topic: "Cuestionario 16",
+                multiple: false,
+                text: "¿Qué pasaría con el algoritmo de <strong>Búsqueda Binaria</strong> si el valor buscado <code>x</code> estuviese repetido más de una vez en el arreglo?",
+                options: [
+                    { text: "El algoritmo funcionaría correctamente de todos modos: retornaría el índice de la primera casilla encontrada que contenga a x.", correct: true },
+                    { text: "No provocaría interrupción, pero retornaría siempre -1.", correct: false },
+                    { text: "Fallaría si x no está, interrumpiendo el programa.", correct: false },
+                    { text: "Produciría un error en tiempo de ejecución.", correct: false }
+                ],
+                explanation: "Apenas un punto medio c coincide con x (x == v[c]), el algoritmo retorna c; no falla ni entra en bucle."
+            },
+            {
+                id: "16-10",
+                topic: "Cuestionario 16",
+                multiple: true,
+                text: "¿En cuáles de los siguientes casos es aplicable el algoritmo de <strong>Fusión de Arreglos</strong> (Merge) que se describió en las fichas de clases para producir un tercer arreglo ordenado?",
+                options: [
+                    { text: "Los arreglos originales deben estar ordenados de menor a mayor si se quiere producir un tercer arreglo ordenado de menor a mayor.", correct: true },
+                    { text: "Uno de los arreglos originales debe estar ordenado y el otro arreglo puede estar desordenado.", correct: false },
+                    { text: "El proceso es aplicable sin importar si los dos arreglos originales están ordenados o no.", correct: false },
+                    { text: "Los arreglos originales deben estar desordenados.", correct: false }
+                ],
+                explanation: "El algoritmo de fusión lineal asume como precondición que ambos vectores de entrada ya vienen ordenados en el mismo sentido."
+            },
+
+            // ================= CUESTIONARIO 22 (10 PREGUNTAS) =================
+            {
+                id: "22-1",
+                topic: "Cuestionario 22",
+                multiple: false,
+                text: "¿Cuál es la principal característica de todos los métodos de ordenamiento conocidos como <strong>métodos simples o directos</strong>?",
+                options: [
+                    { text: "Tienen muy mal rendimiento en tiempo de ejecución si el tamaño n del arreglo es grande o muy grande, y un rendimiento aceptable si n es pequeño.", correct: true },
+                    { text: "Tienen muy buen rendimiento en tiempo de ejecución, cualquiera sea el tamaño n del arreglo.", correct: false },
+                    { text: "Tienen muy mal rendimiento en tiempo de ejecución, cualquiera sea el tamaño n del arreglo.", correct: false },
+                    { text: "Tienen muy mal rendimiento si n es pequeño, y un rendimiento aceptable si n es grande.", correct: false }
+                ],
+                explanation: "Los métodos directos (Selección, Inserción, Burbuja) son O(n²), por lo que sirven para n pequeños pero se vuelven muy lentos cuando n crece."
+            },
+            {
+                id: "22-2",
+                topic: "Cuestionario 22",
+                multiple: false,
+                text: "¿Cuál de las siguientes describe mejor la idea de funcionamiento en la que está basado el algoritmo conocido como ordenamiento por <strong>Inserción Simple</strong> para ordenar un arreglo de n componentes?",
+                options: [
+                    { text: "Suponer que el arreglo tiene un subconjunto inicialmente ordenado que contiene sólo al primer elemento, luego realizar pasadas de forma que en cada una agregue el siguiente elemento al grupo que está ordenado.", correct: true },
+                    { text: "Reacomodar los n elementos del arreglo en forma aleatoria hasta que quede ordenado.", correct: false },
+                    { text: "Realizar n pasadas comparando cada elemento con el siguiente para que los mayores vayan acomodándose al final.", correct: false },
+                    { text: "Determinar en cada pasada el menor de los elementos analizados y llevarlo a la casilla pivot.", correct: false }
+                ],
+                explanation: "Inserción Simple mantiene un prefijo ordenado y va insertando cada nuevo elemento en su lugar correcto desplazando los mayores."
+            },
+            {
+                id: "22-3",
+                topic: "Cuestionario 22",
+                multiple: false,
+                text: "¿Cuál de las siguientes describe mejor la idea de funcionamiento en la que está basado el algoritmo conocido como ordenamiento por <strong>Intercambio Directo u Ordenamiento de Burbuja</strong>?",
+                options: [
+                    { text: "Realizar n pasadas, de forma que en cada una se compare a cada elemento con el siguiente, logrando que en cada pasada los mayores vayan acomodándose al final del arreglo.", correct: true },
+                    { text: "Suponer un subconjunto inicialmente ordenado con el primer elemento e ir agregando el siguiente.", correct: false },
+                    { text: "Determinar el menor de los elementos analizados y llevarlo a la casilla pivot.", correct: false },
+                    { text: "Reacomodar los elementos en forma aleatoria y verificar si quedó ordenado.", correct: false }
+                ],
+                explanation: "Bubblesort compara pares adyacentes v[j] y v[j+1] e intercambia si están invertidos, haciendo 'flotar' el mayor al final de cada pasada."
+            },
+            {
+                id: "22-4",
+                topic: "Cuestionario 22",
+                multiple: false,
+                text: "¿Cuál de las siguientes describe mejor la idea de funcionamiento en la que está basado el algoritmo conocido como ordenamiento por <strong>Selección Simple o Selección Directa</strong>?",
+                options: [
+                    { text: "Realizar n pasadas, de forma que en cada una se determine el menor de los elementos analizados, y llevar ese menor a la casilla pivot.", correct: true },
+                    { text: "Comparar cada elemento con el siguiente logrando que los mayores vayan acomodándose al final.", correct: false },
+                    { text: "Suponer que el primer elemento ya está ordenado e ir insertando los restantes.", correct: false },
+                    { text: "Reacomodar los n elementos en forma aleatoria hasta que queden ordenados.", correct: false }
+                ],
+                explanation: "Selección Directa busca en cada pasada el mínimo de la porción desordenada y lo intercambia con la posición pivote i."
+            },
+            {
+                id: "22-5",
+                topic: "Cuestionario 22",
+                multiple: false,
+                text: "¿Por qué motivo el algoritmo <strong>Bubblesort</strong> para ordenamiento de un arreglo usa una bandera de corte en la versión presentada en las fichas de clase?",
+                options: [
+                    { text: "La bandera de corte se usa para terminar el proceso apenas se detecte que en la pasada actual no hubo intercambios, para ahorrar tiempo.", correct: true },
+                    { text: "Para determinar si el ordenamiento debe hacerse de menor a mayor (True) o de mayor a menor (False).", correct: false },
+                    { text: "No es cierto que la versión vista en clases use una bandera de corte.", correct: false },
+                    { text: "La bandera de corte se usa para garantizar que el arreglo quede ordenado.", correct: false }
+                ],
+                explanation: "Si durante una pasada completa no ocurre ningún intercambio, el arreglo ya está totalmente ordenado y no hace falta seguir iterando."
+            },
+            {
+                id: "22-7",
+                topic: "Cuestionario 22",
+                multiple: true,
+                text: "¿Cuáles de las siguientes son características correctas del algoritmo <strong>Shellsort</strong>?",
+                options: [
+                    { text: "El algoritmo Shellsort consiste en una mejora del algoritmo de Inserción Directa (o Inserción Simple), consistente en armar subconjuntos ordenados con elementos a distancia h > 1 en las primeras fases, y terminar con h = 1 en la última.", correct: true },
+                    { text: "El algoritmo Shellsort es complejo de analizar para determinar su rendimiento en forma matemática, ya que ese rendimiento depende fuertemente de la serie de incrementos decreciente que se haya seleccionado.", correct: true },
+                    { text: "Consiste en una mejora del algoritmo de Selección Directa buscando el menor en tiempo logarítmico.", correct: false },
+                    { text: "Una muy buena serie de incrementos decrecientes a usar es la serie h = {..., 16, 8, 4, 2, 1}.", correct: false }
+                ],
+                explanation: "Shellsort mejora Inserción Directa permitiendo saltos largos h > 1 al principio y finalizando con h = 1. La serie de potencias de 2 es mala."
+            },
+            {
+                id: "22-8",
+                topic: "Cuestionario 22",
+                multiple: false,
+                text: "¿Cuál es el problema si en el algoritmo <strong>Shellsort</strong> se elige una serie de incrementos decrecientes de la forma <code>{ ..., 16, 8, 4, 2, 1 }</code>?",
+                options: [
+                    { text: "Los subconjuntos analizados contendrán casi los mismos elementos cuando la distancia usada sea cada vez menor, sin garantías de lograr una buena organización del arreglo antes de la última pasada.", correct: true },
+                    { text: "No sólo no hay ningún problema, sino que esa serie es la mejor posible para Shellsort.", correct: false },
+                    { text: "Ningún problema: esa serie es tan buena como cualquier otra.", correct: false },
+                    { text: "El arreglo no quedará ordenado al final.", correct: false }
+                ],
+                explanation: "Al ser todos múltiplos de 2, los elementos en posiciones pares e impares nunca se comparan entre sí hasta llegar a la pasada final h = 1."
+            },
+            {
+                id: "22-9",
+                topic: "Cuestionario 22",
+                multiple: false,
+                text: "Sabemos que en el algoritmo de Shell se termina haciendo una última pasada sobre el arreglo con incremento de comparación <code>h = 1</code>. ¿Cuál de las siguientes es cierta respecto de esa última pasada?",
+                options: [
+                    { text: "Con h = 1 el algoritmo se convierte en un ordenamiento por inserción simple, y sólo entonces garantiza que el arreglo quede ordenado.", correct: true },
+                    { text: "La pasada con h = 1 es obligatoria pero no es necesario que sea la última.", correct: false },
+                    { text: "No es obligatorio que lo haga, pero favorece un ordenamiento más rápido.", correct: false },
+                    { text: "Con h = 1 el algoritmo sólo controla si el arreglo está ya ordenado.", correct: false }
+                ],
+                explanation: "Las pasadas previas con h > 1 dejan el arreglo 'casi ordenado', y la pasada final con h = 1 ejecuta Inserción Simple (que es muy rápida sobre datos casi ordenados) garantizando el orden total."
+            },
+            {
+                id: "22-10",
+                topic: "Cuestionario 22",
+                multiple: true,
+                text: "¿Cuáles de las siguientes son características correctas del algoritmo <strong>Heapsort</strong>?",
+                options: [
+                    { text: "El algoritmo Heapsort es muy eficiente en tiempo de ejecución, tanto para el caso promedio como para el peor caso.", correct: true },
+                    { text: "El algoritmo Heapsort arma el heap o grupo de ordenamiento con el que se ordena el vector, pero lo hace en el mismo vector, sin usar memoria extra.", correct: true },
+                    { text: "El algoritmo Heapsort se basa en encontrar sucesivamente el menor (o el mayor) de entre los elementos que quedan, para llevar ese valor a su casillero final en forma muy veloz.", correct: true },
+                    { text: "El algoritmo Heapsort utiliza una cantidad de memoria adicional igual al tamaño del arreglo para armar el heap.", correct: false }
+                ],
+                explanation: "Heapsort trabaja in-place (O(1) memoria extra) y garantiza complejidad O(n log n) incluso en el peor caso."
+            },
+
+            // ================= CUESTIONARIO 27 (20 PREGUNTAS) =================
+            {
+                id: "27-1",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Cuál es la correspondencia correcta de órdenes de complejidad en el peor caso para: 1) Producto tradicional de matrices n*n, 2) Búsqueda binaria, 3) Acceso a v[k], 4) Selección directa y 5) Búsqueda secuencial?",
+                options: [
+                    { text: "1: O(n³) | 2: O(log(n)) | 3: O(1) | 4: O(n²) | 5: O(n)", correct: true },
+                    { text: "1: O(n²) | 2: O(log(n)) | 3: O(1) | 4: O(n³) | 5: O(n)", correct: false },
+                    { text: "1: O(n³) | 2: O(n) | 3: O(1) | 4: O(n²) | 5: O(log(n))", correct: false },
+                    { text: "1: O(n³) | 2: O(log(n)) | 3: O(n) | 4: O(n²) | 5: O(1)", correct: false }
+                ],
+                explanation: "Multiplicar matrices usa 3 ciclos anidados O(n³); búsqueda binaria divide a la mitad O(log n); indexar un arreglo es O(1); selección directa usa 2 ciclos O(n²); búsqueda secuencial recorre hasta n elementos O(n)."
+            },
+            {
+                id: "27-2",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Cuántas comparaciones en el peor caso obliga a hacer una <strong>búsqueda secuencial</strong> en una lista ordenada (o en un arreglo ordenado) que contenga n valores?",
+                options: [
+                    { text: "Peor caso: O(n) comparaciones.", correct: true },
+                    { text: "Peor caso: O(1) comparaciones.", correct: false },
+                    { text: "Peor caso: O(n²) comparaciones.", correct: false },
+                    { text: "Peor caso: O(log(n)) comparaciones.", correct: false }
+                ],
+                explanation: "Aunque el arreglo esté ordenado, la búsqueda secuencial avanza casilla por casilla; si el valor no existe o está al final, realizará n comparaciones."
+            },
+            {
+                id: "27-3",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Cuál es la diferencia entre el <strong>peor caso</strong> y el <strong>caso promedio</strong> en el análisis de algoritmos?",
+                options: [
+                    { text: "El peor caso es la configuración de datos de entrada más desfavorable para el algoritmo, mientras que el caso promedio describe una configuración aleatoria de datos (no pensada ni para favorecer ni para desfavorecer al algoritmo).", correct: true },
+                    { text: "El peor caso es la configuración más favorable y el caso promedio describe una configuración aleatoria.", correct: false },
+                    { text: "El peor caso es la configuración más desfavorable y el caso promedio describe datos pensados para favorecer al algoritmo.", correct: false },
+                    { text: "El peor caso es la configuración más favorable y el caso promedio describe datos pensados para desfavorecerlo.", correct: false }
+                ],
+                explanation: "El peor caso establece la cota máxima de recursos bajo la entrada más adversa; el caso promedio modela el comportamiento esperado ante entradas aleatorias."
+            },
+            {
+                id: "27-4",
+                topic: "Cuestionario 27",
+                multiple: true,
+                text: "¿Cuáles de los siguientes son factores de eficiencia comunes a considerar en el análisis de algoritmos?",
+                options: [
+                    { text: "El tiempo de ejecución.", correct: true },
+                    { text: "El consumo de memoria.", correct: true },
+                    { text: "La complejidad aparente del código fuente.", correct: true },
+                    { text: "La calidad aparente de la interfaz de usuario.", correct: false }
+                ],
+                explanation: "Los tres ejes clásicos de evaluación algorítmica son tiempo de ejecución, espacio en memoria y complejidad aparente del código."
+            },
+            {
+                id: "27-5",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Qué significa decir que un algoritmo dado tiene un tiempo de ejecución <code>O(1)</code>?",
+                options: [
+                    { text: "El tiempo de ejecución es constante, sin importar la cantidad de datos.", correct: true },
+                    { text: "El tiempo de ejecución siempre es de un segundo, sin importar la cantidad de datos.", correct: false },
+                    { text: "El tiempo de ejecución es lineal: si aumenta el número de datos, aumenta el tiempo en la misma proporción.", correct: false },
+                    { text: "El tiempo de ejecución es logarítmico: aumenta muy suavemente al crecer los datos.", correct: false }
+                ],
+                explanation: "O(1) indica tiempo constante (independiente de n), no una duración fija de '1 segundo'."
+            },
+            {
+                id: "27-6",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Qué significa decir que un algoritmo dado tiene un tiempo de ejecución <code>O(n²)</code>?",
+                options: [
+                    { text: "El proceso normalmente consiste en dos ciclos (uno dentro del otro) de aproximadamente n iteraciones cada uno, de forma que las operaciones críticas se aplican un número cuadrático de veces.", correct: true },
+                    { text: "El conjunto de datos se divide en dos, se procesa una mitad y se desecha la otra repetidamente.", correct: false },
+                    { text: "El tiempo de ejecución es constante, sin importar la cantidad de datos.", correct: false },
+                    { text: "El tiempo de ejecución es lineal: aumenta en la misma proporción que los datos.", correct: false }
+                ],
+                explanation: "Un comportamiento cuadrático O(n²) surge típicamente de dos bucles anidados dependientes de n."
+            },
+            {
+                id: "27-7",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Qué significa decir que un algoritmo dado tiene un tiempo de ejecución <code>O(n)</code>?",
+                options: [
+                    { text: "El tiempo de ejecución es lineal: si aumenta el número de datos, aumenta el tiempo en la misma proporción.", correct: true },
+                    { text: "Consiste normalmente en dos ciclos anidados de aproximadamente n iteraciones cada uno.", correct: false },
+                    { text: "El tiempo de ejecución es constante, sin importar la cantidad de datos.", correct: false },
+                    { text: "El conjunto de datos se divide en dos mitades sucesivamente.", correct: false }
+                ],
+                explanation: "O(n) expresa crecimiento lineal directamente proporcional al tamaño n de la entrada."
+            },
+            {
+                id: "27-8",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Qué significa decir que un algoritmo dado tiene un tiempo de ejecución <code>O(log(n))</code>?",
+                options: [
+                    { text: "A medida que aumenta el número de datos, aumenta el tiempo pero en forma muy suave: el conjunto de datos se divide en dos, se procesa una de las mitades, se desecha la otra y se repite el proceso hasta que no pueda volver a dividirse.", correct: true },
+                    { text: "El tiempo de ejecución es lineal respecto al número de datos.", correct: false },
+                    { text: "Consiste en dos ciclos anidados de n iteraciones cada uno.", correct: false },
+                    { text: "El tiempo de ejecución es constante, sin importar la cantidad de datos.", correct: false }
+                ],
+                explanation: "Reducir el espacio de búsqueda a la mitad en cada paso produce un crecimiento logarítmico O(log₂ n)."
+            },
+            {
+                id: "27-9",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "Suponga que dispone de cuatro algoritmos diferentes para resolver el mismo problema, cuyos tiempos de ejecución (en el peor caso) son: <code>O(n * log(n))</code>, <code>O(n²)</code>, <code>O(n³)</code> y <code>O(n)</code>. ¿Cuál debería elegir, suponiendo igual consumo razonable de memoria?",
+                options: [
+                    { text: "El algoritmo cuyo tiempo de ejecución es O(n).", correct: true },
+                    { text: "El algoritmo cuyo tiempo de ejecución es O(n * log(n)).", correct: false },
+                    { text: "El algoritmo cuyo tiempo de ejecución es O(n²).", correct: false },
+                    { text: "El algoritmo cuyo tiempo de ejecución es O(n³).", correct: false }
+                ],
+                explanation: "De las cuatro funciones asintóticas, O(n) es la de menor orden de crecimiento y por ende la más veloz para n grandes."
+            },
+            {
+                id: "27-10",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Con qué nombre general se conoce en la Teoría de la Complejidad a un problema para el cual sólo se conocen algoritmos cuyo tiempo de ejecución es exponencial (por ejemplo <code>O(2ⁿ)</code>)?",
+                options: [
+                    { text: "Problemas Intratables", correct: true },
+                    { text: "Problemas Imperdonables", correct: false },
+                    { text: "Problemas Inmanejables", correct: false },
+                    { text: "Problemas Irresolubles", correct: false }
+                ],
+                explanation: "Los problemas que tienen solución algorítmica pero requieren tiempo exponencial en el peor caso se denominan Problemas Intratables."
+            },
+            {
+                id: "27-11",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "Considere cuatro procesos en Python: (A) Dos ciclos anidados <code>for i in range(n): for j in range(i+1, n):</code>, (B) Tres ciclos anidados <code>for i in range(n): for j in range(n): for k in range(n):</code>, (C) Un ciclo <code>for i in range(n):</code> y (D) Un ciclo fijo <code>for i in range(10):</code>. ¿Cuál es la secuencia correcta de sus órdenes Big O?",
+                options: [
+                    { text: "(A) O(n²)  |  (B) O(n³)  |  (C) O(n)  |  (D) O(1)", correct: true },
+                    { text: "(A) O(n)  |  (B) O(n³)  |  (C) O(n²)  |  (D) O(1)", correct: false },
+                    { text: "(A) O(n²)  |  (B) O(n³)  |  (C) O(n)  |  (D) O(n)", correct: false },
+                    { text: "(A) O(n log n)  |  (B) O(n³)  |  (C) O(n)  |  (D) O(1)", correct: false }
+                ],
+                explanation: "El ciclo triangular ejecuta n(n-1)/2 pasos -> O(n²); el triple ciclo ejecuta n³ pasos -> O(n³); el ciclo simple es O(n); y range(10) siempre hace 10 iteraciones -> O(1)."
+            },
+            {
+                id: "27-12",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "Analice el siguiente esquema de una función en Python. ¿Cuál expresión de orden describe mejor su tiempo de ejecución en el peor caso?",
+                code: "def procesar(n, m):\n    for i in range(n + 1):\n        for j in range(m + 1):\n            # acciones sencillas de tiempo constante...",
+                options: [
+                    { text: "O(n * m)", correct: true },
+                    { text: "O(n * n)", correct: false },
+                    { text: "O(n)", correct: false },
+                    { text: "O(m)", correct: false }
+                ],
+                explanation: "Cuando el tamaño del problema depende de dos parámetros independientes n y m, la complejidad se expresa con ambas variables: O(n * m)."
+            },
+            {
+                id: "27-13",
+                topic: "Cuestionario 27",
+                multiple: true,
+                text: "El ordenamiento por Selección Directa realiza invariablemente una cantidad total exacta de <code>½(n² - n)</code> comparaciones. ¿Cuáles de las siguientes expresiones son correctas para describir esa cantidad de comparaciones?",
+                options: [
+                    { text: "Cantidad de comparaciones: O(n²)", correct: true },
+                    { text: "Cantidad de comparaciones: Ω(n²)", correct: true },
+                    { text: "Cantidad de comparaciones: Θ(n²)", correct: true },
+                    { text: "Cantidad de comparaciones: o(n²)", correct: false }
+                ],
+                explanation: "Como ½(n² - n) está acotada tanto superiormente O(n²) como inferiormente Ω(n²) por una función cuadrática, pertenece a Θ(n²) (y no a o(n²) estricta)."
+            },
+            {
+                id: "27-14",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Cuál es la principal característica de todos los métodos de ordenamiento conocidos como <strong>métodos simples o directos</strong> (en términos de complejidad)?",
+                options: [
+                    { text: "Tienen un tiempo de ejecución de orden cuadrático en el peor caso.", correct: true },
+                    { text: "Son muy fáciles de programar.", correct: false },
+                    { text: "Son muy veloces para cualquier tamaño del arreglo a ordenar.", correct: false },
+                    { text: "Tienen un tiempo de ejecución de orden lineal en el peor caso.", correct: false }
+                ],
+                explanation: "Todos los métodos directos (Burbuja, Selección, Inserción) presentan complejidad O(n²) en el peor caso."
+            },
+            {
+                id: "27-15",
+                topic: "Cuestionario 27",
+                multiple: true,
+                text: "¿Cuáles de las siguientes son características correctas del algoritmo <strong>Shellsort</strong>?",
+                options: [
+                    { text: "Consiste en una mejora del algoritmo de Inserción Directa (o Inserción Simple), armando subconjuntos ordenados con elementos a distancia h > 1 y terminando con h = 1.", correct: true },
+                    { text: "Es complejo de analizar matemáticamente; para la serie de incrementos decrecientes vista en las clases de la asignatura tiene un tiempo de ejecución para el peor caso de O(n¹·⁵).", correct: true },
+                    { text: "Consiste en una mejora de Selección Directa buscando el menor en tiempo logarítmico.", correct: false },
+                    { text: "En el caso promedio es siempre O(n * log(n)) como Quicksort.", correct: false }
+                ],
+                explanation: "Con la secuencia de Knuth (h = 3h + 1) vista en clase, Shellsort alcanza un orden de peor caso de O(n¹·⁵)."
+            },
+            {
+                id: "27-16",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "¿Qué diferencia existe entre el <strong>conteo exhaustivo de operaciones críticas</strong> y el <strong>análisis asintótico</strong> del comportamiento de una función en el análisis de algoritmos?",
+                options: [
+                    { text: "El conteo exhaustivo busca determinar una expresión o fórmula que exprese de manera rigurosa la cantidad de operaciones críticas, mientras que el análisis asintótico busca determinar el comportamiento general para valores muy grandes del tamaño del problema.", correct: true },
+                    { text: "Ninguna. Ambas se refieren a la misma técnica básica.", correct: false },
+                    { text: "El análisis asintótico obtiene la fórmula exacta y el conteo exhaustivo estudia valores muy grandes.", correct: false },
+                    { text: "El conteo exhaustivo cuenta únicamente las operaciones no críticas.", correct: false }
+                ],
+                explanation: "El conteo exhaustivo halla la función exacta f(n); el análisis asintótico (Big O) evalúa la tasa de crecimiento de f(n) cuando n tiende a infinito."
+            },
+            {
+                id: "27-17",
+                topic: "Cuestionario 27",
+                multiple: true,
+                text: "¿Qué se entiende, en el contexto del Análisis de Algoritmos, por un <strong>Orden de Complejidad</strong>?",
+                options: [
+                    { text: "Un conjunto o familia de funciones matemáticas que se comportan asintóticamente de la misma forma.", correct: true },
+                    { text: "Un conjunto o familia de algoritmos que resuelven el mismo problema (y comparten dicho comportamiento asintótico).", correct: true },
+                    { text: "Un conjunto o familia de subrutinas con similares objetivos (equivalente al concepto de módulo).", correct: false },
+                    { text: "Un conjunto de datos ordenados.", correct: false }
+                ],
+                explanation: "Un orden de complejidad agrupa tanto a la familia de funciones con idéntico crecimiento asintótico como a los algoritmos caracterizados por ese orden."
+            },
+            {
+                id: "27-18",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "Si los algoritmos de ordenamiento simples tienen todos un tiempo de ejecución <code>O(n²)</code> en el peor caso, ¿cómo explica que las mediciones efectivas de los tiempos de ejecución de cada uno sean diferentes frente al mismo arreglo?",
+                options: [
+                    { text: "La notación Big O rescata el término más significativo en la expresión que calcula el rendimiento, descartando constantes y otros términos que podrían no coincidir en los tres algoritmos.", correct: true },
+                    { text: "Los tiempos deben coincidir; si hay diferencias es por errores en los instrumentos de medición.", correct: false },
+                    { text: "La notación Big O no se debe usar para el peor caso, sino sólo para el caso medio.", correct: false },
+                    { text: "Es un error decir que los tiempos tienen orden n cuadrado.", correct: false }
+                ],
+                explanation: "Dos funciones como 0.5n² y 2n² son ambas O(n²), pero sus constantes multiplicativas hacen que una tarde cuatro veces más en la práctica."
+            },
+            {
+                id: "27-19",
+                topic: "Cuestionario 27",
+                multiple: false,
+                text: "Se tiene un algoritmo cuya cantidad de procesos en el peor caso viene descripta por la función <code>f(n) = 3n³ + 5n² + 2n¹·⁵</code>. ¿Cuál expresión representa mejor el orden del algoritmo para el peor caso?",
+                options: [
+                    { text: "O(n³)", correct: true },
+                    { text: "O(3n³ + 5n² + 2n¹·⁵)", correct: false },
+                    { text: "O(n¹·⁵)", correct: false },
+                    { text: "O(n³ + n²)", correct: false }
+                ],
+                explanation: "En notación Big O se conserva únicamente el término de mayor grado (n³) y se descartan coeficientes constantes y términos menores."
+            },
+            {
+                id: "27-20",
+                topic: "Cuestionario 27",
+                multiple: true,
+                text: "¿Cuáles de las siguientes afirmaciones son correctas en cuanto a los tiempos de ejecución de los algoritmos de ordenamiento clásicos?",
+                options: [
+                    { text: "Algoritmos directos o simples: O(n²) en el peor caso para todos ellos.", correct: true },
+                    { text: "Algoritmo Quick Sort: O(n * log(n)) en el caso promedio, pero O(n²) en el peor caso.", correct: true },
+                    { text: "Algoritmo Heap Sort: O(n * log(n)) tanto para el caso promedio como para el peor caso.", correct: true },
+                    { text: "Algoritmo Shell Sort: O(n²) en el peor caso para la serie de incrementos decrecientes vista en clase.", correct: false }
+                ],
+                explanation: "Directos son O(n²); Quicksort es O(n log n) promedio y O(n²) peor caso; Heapsort es O(n log n) siempre; Shellsort visto en clase es O(n¹·⁵) en el peor caso."
+            },
+
+            // ================= CUESTIONARIO 28 (10 PREGUNTAS) =================
+            {
+                id: "28-1",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "¿Cuál es la diferencia entre la <strong>abstracción de datos</strong> y la <strong>abstracción funcional</strong>?",
+                options: [
+                    { text: "La abstracción de datos busca captar el conjunto de datos más relevante para representar un tipo abstracto, mientras que la funcional busca determinar el conjunto de procesos relevante para esos datos.", correct: true },
+                    { text: "No existe división entre abstracción de datos y abstracción funcional.", correct: false },
+                    { text: "Ninguna. Son sólo dos formas de referirse al mismo concepto.", correct: false },
+                    { text: "La abstracción de datos capta los procesos y la funcional determina los datos.", correct: false }
+                ],
+                explanation: "Un Tipo Abstracto de Datos (TAD) combina la representación estructural (abstracción de datos) con sus operaciones (abstracción funcional)."
+            },
+            {
+                id: "28-2",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "Suponga que se quiere implementar un nuevo tipo de datos abstracto llamado <strong>Fecha</strong> para manipulación de fechas en un programa en Python de gestión de eventos sociales. ¿Cuál estrategia de abstracción sería la más adecuada?",
+                options: [
+                    { text: "Abstracción de datos: un registro con tres campos para el año, el mes y el día. Abstracción funcional: funciones para buscar, reservar, liberar y modificar los datos de una fecha para un evento.", correct: true },
+                    { text: "Abstracción de datos: una tupla con tres componentes (año, mes, día) e inmutable.", correct: false },
+                    { text: "Abstracción de datos: un registro con año, mes, día, nombre del cliente, tipo de evento, presupuesto y proyección meteorológica.", correct: false },
+                    { text: "Abstracción de datos: una variable str ('2015/08/31') y funciones para imprimirla en colores.", correct: false }
+                ],
+                explanation: "El TAD Fecha debe encapsular estrictamente sus atributos esenciales (día, mes, año) en un registro mutable junto con las operaciones propias del dominio."
+            },
+            {
+                id: "28-3",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "¿Cuál de las siguientes expresiones describe la forma de trabajo general de una <strong>Pila</strong>?",
+                options: [
+                    { text: "LIFO (Last In - First Out)", correct: true },
+                    { text: "FIFO (First In - First Out)", correct: false },
+                    { text: "OIRO (Ordered In - Random Out)", correct: false },
+                    { text: "OIFO (Ordered In - First Out)", correct: false }
+                ],
+                explanation: "Una Pila (Stack) opera bajo política LIFO: el último elemento en entrar es el primero en salir."
+            },
+            {
+                id: "28-4",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "¿Cuál de las siguientes situaciones de programación es la principal aplicación de una <strong>Pila</strong>?",
+                options: [
+                    { text: "Procesar una secuencia de datos en orden inverso al de su entrada.", correct: true },
+                    { text: "Procesar una secuencia de datos en orden aleatorio.", correct: false },
+                    { text: "Procesar una secuencia de datos en orden de menor a mayor.", correct: false },
+                    { text: "Procesar una secuencia de datos en el mismo orden en el que ingresaron.", correct: false }
+                ],
+                explanation: "Al extraer en orden inverso a la inserción, las pilas son ideales para invertir secuencias, evaluar expresiones y gestionar llamadas."
+            },
+            {
+                id: "28-5",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "Se tiene una pila <code>p</code> con los valores <code>[8 - 6 - 5 - 3 - 7]</code> (el número 8 es el tope de la Pila). ¿Cuál secuencia permite retirar el valor <code>5</code>, dejando el <code>6</code> y el <code>8</code> nuevamente arriba (estado <code>[8 - 6 - 3 - 7]</code>)?",
+                options: [
+                    { text: "n1 = p.pop(); n2 = p.pop(); x = p.pop(); p.push(n2); p.push(n1)", correct: true },
+                    { text: "n1 = p.pop(); n2 = p.pop(); x = p.pop(); p.push(n1); p.push(n2)", correct: false },
+                    { text: "n1 = p.pop(); n2 = p.pop(); x = p.peek(); p.push(n2); p.push(n1)", correct: false },
+                    { text: "n1 = p.pop(); n2 = p.pop(); x = p.pop()", correct: false }
+                ],
+                explanation: "Se desapila 8 (n1), luego 6 (n2) y se extrae 5 (x). Luego se apila primero n2 (6) y encima n1 (8)."
+            },
+            {
+                id: "28-6",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "Suponga que tiene una pila <code>p</code> con datos (ej: <code>[3 - 4 - 6 - 7]</code> con el 3 al frente) y dos pilas auxiliares vacías <code>p2</code> y <code>p3</code>. ¿Cuál secuencia permite invertir <code>p</code> dejándola en <code>[7 - 6 - 4 - 3]</code>?",
+                options: [
+                    { text: "Pasar de p a p2, luego de p2 a p3, y finalmente de p3 a p.", correct: true },
+                    { text: "Pasar de p a p2 y luego de p2 directamente a p.", correct: false },
+                    { text: "Pasar de p a p2, de p2 a p3, y de p3 nuevamente a p2.", correct: false },
+                    { text: "Pasar de p a p2 y de p2 a p3 (dejando p vacía).", correct: false }
+                ],
+                explanation: "p -> p2 invierte el orden; p2 -> p3 restaura el orden original; y p3 -> p vuelve a invertirlo dejando el resultado en p."
+            },
+            {
+                id: "28-7",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "¿Cuál de las siguientes expresiones describe la forma de trabajo general de una <strong>Cola</strong>?",
+                options: [
+                    { text: "FIFO (First In - First Out)", correct: true },
+                    { text: "LIFO (Last In - First Out)", correct: false },
+                    { text: "OIRO (Ordered In - Random Out)", correct: false },
+                    { text: "OIFO (Ordered In - First Out)", correct: false }
+                ],
+                explanation: "Una Cola (Queue) respeta el orden de llegada: First In - First Out."
+            },
+            {
+                id: "28-8",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "¿Cuál de las siguientes situaciones de programación es la principal aplicación de una <strong>Cola</strong>?",
+                options: [
+                    { text: "Procesar una secuencia de datos en el mismo orden en el que ingresaron.", correct: true },
+                    { text: "Procesar una secuencia de datos en orden de menor a mayor.", correct: false },
+                    { text: "Procesar una secuencia de datos en orden inverso al de su entrada.", correct: false },
+                    { text: "Procesar una secuencia de datos en orden aleatorio.", correct: false }
+                ],
+                explanation: "Las colas preservan estrictamente el orden cronológico de arribo de los elementos."
+            },
+            {
+                id: "28-9",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "Se tiene una cola <code>c</code> en la cual se almacenaron datos (ej: <code>[3 - 4 - 6 - 7]</code> con el 3 al frente). ¿Cuál secuencia permite invertir la cola dejándola en <code>[7 - 6 - 4 - 3]</code>?",
+                options: [
+                    { text: "Usar una PILA vacía p: mientras c no esté vacía hacer p.push(c.remove()), y luego mientras p no esté vacía hacer c.add(p.pop()).", correct: true },
+                    { text: "Usar otra cola vacía c2: pasar de c a c2 y luego de c2 a c.", correct: false },
+                    { text: "Usar dos pilas p1 y p2 pasando de c -> p1 -> p2 -> c.", correct: false },
+                    { text: "Usar dos colas c2 y c3 pasando sucesivamente entre ellas.", correct: false }
+                ],
+                explanation: "Pasar de una Cola (FIFO) a una Pila (LIFO) y de vuelta a la Cola invierte el orden de la secuencia."
+            },
+            {
+                id: "28-10",
+                topic: "Cuestionario 28",
+                multiple: false,
+                text: "Una <strong>Cola de Prioridad</strong> es una cola donde cuando se pide retirar un elemento se obtiene siempre el menor de los valores almacenados. ¿Cuál estrategia es una forma básica de implementarla usando una <code>list</code> en Python?",
+                options: [
+                    { text: "Inserción ordenada de menor a mayor (recorrer el arreglo y al encontrar el primer mayor a x detenerse e insertar allí con corte de índices). Eliminación: siempre el primer elemento.", correct: true },
+                    { text: "Inserción ordenada de mayor a menor y eliminación siempre del primer elemento.", correct: false },
+                    { text: "Inserción siempre al frente y eliminación siempre del primer elemento.", correct: false },
+                    { text: "Inserción siempre al final y eliminación siempre del último elemento.", correct: false }
+                ],
+                explanation: "Manteniendo la lista ordenada ascendentemente al insertar (O(n)), el menor elemento queda siempre en la posición 0 para retirarlo en O(1)."
+            },
+
+            // ================= CUESTIONARIO 29 (10 PREGUNTAS) =================
+            {
+                id: "29-1",
+                topic: "Cuestionario 29",
+                multiple: false,
+                text: "En un árbol binario un nodo tendrá un único nodo padre (salvo la raíz, que no tiene padre). ¿Qué parte de la definición recursiva de árbol binario es la que impide que un nodo pueda tener más de un padre?",
+                options: [
+                    { text: "La sección en la que se afirma que los dos subconjuntos que dependen del nodo raíz son conjuntos separados o mutuamente excluyentes.", correct: true },
+                    { text: "La sección en la que se afirma que el árbol puede estar vacío o contener un nodo designado como raíz.", correct: false },
+                    { text: "La sección en la que se afirma que del nodo raíz se desprenden dos subconjuntos.", correct: false },
+                    { text: "La sección en la que se afirma que los dos subconjuntos pueden estar vacíos.", correct: false }
+                ],
+                explanation: "Al ser los subárboles izquierdo y derecho conjuntos disjuntos (mutuamente excluyentes), ningún nodo puede pertenecer a ambos ni tener dos padres."
+            },
+            {
+                id: "29-2",
+                topic: "Cuestionario 29",
+                multiple: false,
+                text: "¿Cuál de las siguientes afirmaciones es CIERTA respecto de los <strong>árboles binarios de búsqueda</strong> (ABB)?",
+                options: [
+                    { text: "Si el árbol tiene n nodos, el tiempo de búsqueda en el peor caso es O(log(n)) si la altura del árbol h es O(log(n)).", correct: true },
+                    { text: "Siempre tienen altura mínima.", correct: false },
+                    { text: "Si el árbol tiene n nodos, el tiempo de búsqueda es O(n * log(n)) si la altura h es O(log(n)).", correct: false },
+                    { text: "Siempre tienen altura máxima.", correct: false }
+                ],
+                explanation: "La búsqueda en un ABB desciende un nivel por comparación, por lo que su costo es O(h). Solo cuando h = O(log n) la búsqueda es O(log n)."
+            },
+            {
+                id: "29-3",
+                topic: "Cuestionario 29",
+                multiple: false,
+                text: "¿Cuántas comparaciones por nivel se realizan en un árbol binario de búsqueda de n nodos cuando se busca una clave?",
+                options: [
+                    { text: "Comparaciones por nivel: 1 (una)", correct: true },
+                    { text: "Comparaciones por nivel: n", correct: false },
+                    { text: "Comparaciones por nivel: n²", correct: false },
+                    { text: "Comparaciones por nivel: log(n)", correct: false }
+                ],
+                explanation: "En cada nivel visitado se evalúa la clave buscada contra el nodo actual (1 comparación de igualdad/orden) para decidir si detenerse, ir a la izquierda o a la derecha."
+            },
+            {
+                id: "29-4",
+                topic: "Cuestionario 29",
+                multiple: true,
+                text: "Considere el método <code>contains(self, x)</code> en un ABB de n nodos creado con el algoritmo simple de inserción sin control de altura o balance. ¿Cuáles afirmaciones son correctas?",
+                code: "def contains(self, x):\n    if x is None:\n        return False\n    p = self.root\n    while p is not None:\n        if x == p.info:\n            return True\n        elif x < p.info:\n            p = p.left\n        else:\n            p = p.right\n    return False",
+                options: [
+                    { text: "El tiempo de ejecución del algoritmo mostrado es O(n) en el peor caso.", correct: true },
+                    { text: "El tiempo de ejecución del algoritmo mostrado es O(log(n)) en el peor caso, pero sólo si el árbol tiene altura h = O(log(n)) = mínima.", correct: true },
+                    { text: "El tiempo de ejecución del algoritmo mostrado es O(1) en el peor caso.", correct: false },
+                    { text: "El tiempo de ejecución del algoritmo mostrado es siempre O(log(n)) sin importar cómo se insertaron los datos.", correct: false }
+                ],
+                explanation: "Sin balanceo, si los datos entran ordenados, el ABB degenera en una lista/diagonal de altura n y contains() tarda O(n)."
+            },
+            {
+                id: "29-5",
+                topic: "Cuestionario 29",
+                multiple: true,
+                text: "Suponga que desconoce la forma gráfica de un árbol binario (no necesariamente de búsqueda). ¿Con cuáles de las siguientes combinaciones de secuencias de recorrido se garantiza que podrá volver a dibujar el árbol original sin ambigüedades?",
+                options: [
+                    { text: "Podrá volver a dibujar el árbol si conoce la secuencia de recorrido en preorden y la secuencia de recorrido en entreorden.", correct: true },
+                    { text: "Podrá volver a dibujar el árbol si conoce la secuencia de recorrido en postorden y la secuencia de recorrido en entreorden.", correct: true },
+                    { text: "Podrá volver a dibujar el árbol si conoce la secuencia de recorrido en preorden y la secuencia de recorrido en postorden.", correct: false },
+                    { text: "Podrá volver a dibujar el árbol si sólo conoce la secuencia de recorrido en entreorden.", correct: false }
+                ],
+                explanation: "Siempre se requiere el recorrido en entreorden (inorden) acompañado de preorden o postorden para reconstruir un árbol binario de forma unívoca."
+            },
+            {
+                id: "29-6",
+                topic: "Cuestionario 29",
+                multiple: false,
+                text: "¿En qué condiciones el recorrido en <strong>preorden</strong> de un árbol binario de búsqueda visitará los nodos del árbol en secuencia ordenada de menor a mayor?",
+                options: [
+                    { text: "Sólo si el árbol es una diagonal con todos los hijos izquierdos nulos.", correct: true },
+                    { text: "Nunca.", correct: false },
+                    { text: "Sólo si el árbol es una diagonal con todos los hijos derechos nulos.", correct: false },
+                    { text: "Siempre.", correct: false }
+                ],
+                explanation: "En preorden (Raíz, Izquierda, Derecha), si no hay hijos izquierdos, cada padre se visita inmediatamente antes que su hijo derecho (que es mayor)."
+            },
+            {
+                id: "29-7",
+                topic: "Cuestionario 29",
+                multiple: false,
+                text: "¿Qué es lo peor que puede pasar con un árbol binario de búsqueda de n nodos si no se lo mantiene equilibrado (o balanceado)?",
+                options: [
+                    { text: "Que una búsqueda obligue a O(n) comparaciones.", correct: true },
+                    { text: "Que una búsqueda obligue a O(2ⁿ) comparaciones.", correct: false },
+                    { text: "Que una búsqueda obligue a O(log(n)) comparaciones.", correct: false },
+                    { text: "Que una búsqueda obligue a O(n²) comparaciones.", correct: false }
+                ],
+                explanation: "En el peor caso de desbalanceo, la altura del árbol es n (forma de lista enlazada), degradando la búsqueda a O(n)."
+            },
+            {
+                id: "29-8",
+                topic: "Cuestionario 29",
+                multiple: true,
+                text: "Si en un ABB se relaja la regla de inserción para permitir claves repetidas de modo que los menores sigan yendo a la izquierda, pero los <strong>mayores o iguales</strong> vayan a la derecha, ¿qué afirmaciones son ciertas?",
+                options: [
+                    { text: "Dos o más claves iguales podrán quedar separadas por dos o más niveles de distancia.", correct: true },
+                    { text: "Si solo se insertan claves que sean iguales a la que contiene la raíz, el árbol tendrá estructura de una diagonal con todos los enlaces izquierdos nulos.", correct: true },
+                    { text: "Dos claves iguales quedarán siempre en el árbol una como hija derecha e inmediata de la otra.", correct: false },
+                    { text: "Si solo se insertan claves iguales a la raíz, tendrá todos los enlaces derechos nulos.", correct: false }
+                ],
+                explanation: "Si entre dos inserciones de una misma clave k se inserta un valor mayor (ej: k+1), el segundo k irá a la izquierda de k+1, quedando a más de un nivel de distancia del primer k."
+            },
+            {
+                id: "29-9",
+                topic: "Cuestionario 29",
+                multiple: false,
+                text: "¿Cuál es la razón por la que es recomendable usar una <strong>pila</strong> como soporte al recorrer un árbol binario (y por lo tanto usar recursión)?",
+                options: [
+                    { text: "Porque una pila permite almacenar en orden LIFO las direcciones de los nodos que se acaban de visitar en el recorrido, y cuando se necesite regresar a ese nodo luego de procesar alguno de sus dos hijos, su dirección quedará en el tope de la pila y será accesible en forma directa.", correct: true },
+                    { text: "Es mejor usar una cola FIFO para almacenar las direcciones de regreso.", correct: false },
+                    { text: "No hay ninguna razón para usar pila o recursión; un simple ciclo con una variable alcanza para todo el árbol.", correct: false },
+                    { text: "El árbol puede recorrerse desplazándose únicamente hacia los hijos izquierdos.", correct: false }
+                ],
+                explanation: "Para retroceder desde un subárbol hacia el ancestro más reciente pendiente de explorar el otro hijo, se necesita acceso LIFO (una pila o el call stack recursivo)."
+            },
+            {
+                id: "29-10",
+                topic: "Cuestionario 29",
+                multiple: false,
+                text: "En base a la idea intuitiva vista en la asignatura, ¿cuál de las siguientes describe conceptualmente mejor lo que se entiende por un <strong>árbol binario balanceado o equilibrado</strong>?",
+                options: [
+                    { text: "Intuitivamente, un árbol binario está balanceado si su altura es la mínima posible (o se acerca mucho a esa mínima) para la cantidad de nodos que tiene el árbol.", correct: true },
+                    { text: "Intuitivamente, está balanceado si tiene forma de zig-zag con no más de un nodo por nivel.", correct: false },
+                    { text: "Intuitivamente, está balanceado si su altura es la máxima posible para la cantidad de nodos.", correct: false },
+                    { text: "Intuitivamente, está balanceado si tiene forma de diagonal.", correct: false }
+                ],
+                explanation: "Un árbol de n nodos con altura mínima (~log₂ n) distribuye sus nodos de forma compacta y garantiza búsquedas rápidas."
+            },
+
+            // ================= CUESTIONARIO 30 (10 PREGUNTAS) =================
+            {
+                id: "30-1",
+                topic: "Cuestionario 30",
+                multiple: true,
+                text: "¿Cuáles de las siguientes afirmaciones referidas a conceptos básicos generales sobre <strong>grafos</strong> son correctas?",
+                options: [
+                    { text: "Un grafo puede tener nodos aislados: nodos que no tienen ningún arco incidente a él (ninguno de entrada y ninguno de salida).", correct: true },
+                    { text: "Un grafo puede tener subgrafos no unidos entre sí por arcos que los conecten (es decir, puede tener dos o más componentes conexas).", correct: true },
+                    { text: "Dos nodos a y b de un grafo (dirigido o no) pueden tener varios caminos de distinta longitud que los unan.", correct: true },
+                    { text: "Todo arco de un grafo, necesaria y obligatoriamente une dos nodos diferentes de ese grafo.", correct: false }
+                ],
+                explanation: "Un grafo admite auto-ciclos (arcos que unen un nodo consigo mismo), nodos aislados, múltiples componentes conexas y múltiples caminos entre vértices."
+            },
+            {
+                id: "30-2",
+                topic: "Cuestionario 30",
+                multiple: false,
+                text: "¿Cuál de las siguientes afirmaciones es <strong>FALSA</strong> respecto de los ciclos en un grafo?",
+                options: [
+                    { text: "Los ciclos no están permitidos en un grafo.", correct: true },
+                    { text: "Es válido que un ciclo conste de un único arco que permita vincular a un nodo consigo mismo.", correct: false },
+                    { text: "Un ciclo es un camino que parte de un nodo y lleva de vuelta al mismo nodo.", correct: false },
+                    { text: "Los ciclos pueden ser válidos o no, dependiendo del problema que se quiere resolver.", correct: false }
+                ],
+                explanation: "En la definición general de grafo los ciclos SÍ están permitidos (sólo se restringen en grafos acíclicos como los árboles o DAGs)."
+            },
+            {
+                id: "30-3",
+                topic: "Cuestionario 30",
+                multiple: true,
+                text: "Se desea modelar con un grafo dirigido el plan de estudios de una carrera universitaria donde el arco <code>(x, y)</code> indica que para cursar <code>y</code> debe estar regularizada <code>x</code>. ¿Cuáles de las siguientes situaciones NO serían aceptables y deberían ser evitadas por validación?",
+                options: [
+                    { text: "La ocurrencia de ciclos en general en el grafo.", correct: true },
+                    { text: "La ocurrencia de auto ciclos en cualquiera de sus vértices.", correct: true },
+                    { text: "La ocurrencia de algún tipo de relación transitiva explícita, es decir, que existan al mismo tiempo los arcos (x, y), (y, z) y (x, z).", correct: true },
+                    { text: "Vértices a los que no llega ningún arco de entrada (aunque podrían tener arcos de salida).", correct: false }
+                ],
+                explanation: "Las materias de primer año no tienen arcos de entrada (es normal). En cambio, los ciclos/auto-ciclos bloquearían el cursado y los arcos transitivos explícitos son redundantes."
+            },
+            {
+                id: "30-4",
+                topic: "Cuestionario 30",
+                multiple: false,
+                text: "¿En cuál de las siguientes situaciones <strong>NO</strong> debería usar un grafo dirigido?",
+                options: [
+                    { text: "Para modelar un plano de rutas entre localidades o ciudades.", correct: true },
+                    { text: "Para modelar un sociograma (cómo un grupo de personas se relacionan entre sí).", correct: false },
+                    { text: "Para modelar un plan de estudios de una carrera universitaria.", correct: false },
+                    { text: "Para modelar un sistema de cañerías que transportan líquidos desde una fuente hasta un destino.", correct: false }
+                ],
+                explanation: "Las rutas interurbanas son habitualmente de doble mano (simétricas), por lo que corresponde un grafo no dirigido."
+            },
+            {
+                id: "30-5",
+                topic: "Cuestionario 30",
+                multiple: true,
+                text: "¿En cuáles de las siguientes situaciones sería ideal un <strong>grafo no dirigido</strong>?",
+                options: [
+                    { text: "Para modelar un plano de rutas entre localidades o ciudades.", correct: true },
+                    { text: "Para modelar un sistema de rutas aéreas entre distintos aeropuertos del mundo.", correct: true },
+                    { text: "Para modelar un sociograma de relaciones interpersonales.", correct: false },
+                    { text: "Para modelar un plan de estudios de correlatividades.", correct: false }
+                ],
+                explanation: "Tanto las rutas viales entre localidades como las conexiones aéreas bidireccionales entre aeropuertos se modelan naturalmente con aristas no dirigidas."
+            },
+            {
+                id: "30-6",
+                topic: "Cuestionario 30",
+                multiple: true,
+                text: "¿Cuáles de las siguientes expresan afirmaciones ciertas cuando se quiere implementar un <strong>grafo ponderado</strong> en forma matricial simple?",
+                options: [
+                    { text: "Si se almacena directamente el peso del arco en cada casillero, un problema posible es el de la ambigüedad del cero: no sería posible distinguir si el cero es el peso de un arco, o el indicador de que el arco no existe.", correct: true },
+                    { text: "Si se almacena solo un entero para representar al arco y su peso, sería inviable representar arcos con pesos múltiples.", correct: true },
+                    { text: "Una manera recomendable de implementar un grafo ponderado en forma matricial es hacer que cada casilla de la matriz de adyacencias apunte a un objeto que represente a un arco, guardando allí todos los atributos necesarios.", correct: true },
+                    { text: "No hay manera de representar grafos ponderados en forma matricial.", correct: false }
+                ],
+                explanation: "Guardar referencias a objetos Arco (o None si no existe) resuelve tanto la ambigüedad del peso 0 como la necesidad de múltiples atributos."
+            },
+            {
+                id: "30-7",
+                topic: "Cuestionario 30",
+                multiple: false,
+                text: "Un <strong>grafo reflexivo</strong> es un grafo dirigido en el cual todo vértice tiene un auto ciclo. Suponga un grafo G dirigido y reflexivo con n vértices cuya matriz de adyacencias almacena valores booleanos. ¿Qué es verdadero respecto de su matriz de adyacencias?",
+                options: [
+                    { text: "Todos los casilleros de la diagonal principal de la matriz de adyacencia valen True, pero no es obligatorio que sólo ellos puedan valer True.", correct: true },
+                    { text: "Todos los casilleros de la diagonal principal valen True, y sólo ellos pueden valer True.", correct: false },
+                    { text: "Todos los casilleros de la matriz de adyacencia valen True.", correct: false },
+                    { text: "Todos los casilleros del triángulo superior de la matriz de adyacencia valen True.", correct: false }
+                ],
+                explanation: "La reflexividad exige que ady[i][i] == True para todo i (diagonal principal), sin impedir que existan arcos entre vértices distintos."
+            },
+            {
+                id: "30-8",
+                topic: "Cuestionario 30",
+                multiple: false,
+                text: "Un <strong>grafo simétrico</strong> es un grafo dirigido en el cual si existe el arco (x, y) entonces existe también el arco (y, x). ¿Qué se puede afirmar respecto de su matriz de adyacencias booleana?",
+                options: [
+                    { text: "La matriz es simétrica (o espejada) respecto de la diagonal principal: el valor en el casillero ady[x][y] siempre será igual al valor en ady[y][x].", correct: true },
+                    { text: "Todos los casilleros de la diagonal principal valen True.", correct: false },
+                    { text: "Todos los casilleros del triángulo inferior valen True y los del superior False.", correct: false },
+                    { text: "Todos los casilleros de la matriz son True o todos son False.", correct: false }
+                ],
+                explanation: "Por definición de matriz simétrica, ady[x][y] == ady[y][x] para todo par (x, y)."
+            },
+            {
+                id: "30-9",
+                topic: "Cuestionario 30",
+                multiple: false,
+                text: "Un <strong>grafo transitivo</strong> es un grafo dirigido en el cual cada vez que existen los arcos (x, y) e (y, z) entonces existe también el arco (x, z). ¿Qué se puede afirmar respecto de su matriz de adyacencias booleana?",
+                options: [
+                    { text: "Si los casilleros ady[x][y] y ady[y][z] son True, entonces el casillero ady[x][z] será también True.", correct: true },
+                    { text: "Si ady[y][z] es True entonces ady[x][z] será True, sin importar ady[x][y].", correct: false },
+                    { text: "Si ady[x][y] es True entonces ady[x][z] será True, sin importar ady[y][z].", correct: false },
+                    { text: "Si ady[x][y] y ady[y][z] son False, entonces ady[x][z] será True.", correct: false }
+                ],
+                explanation: "La condición transitiva implica directamente que la conjunción (ady[x][y] and ady[y][z]) fuerza ady[x][z] == True."
+            },
+            {
+                id: "30-10",
+                topic: "Cuestionario 30",
+                multiple: true,
+                text: "¿Cuáles de las siguientes afirmaciones relativas a arcos de entrada o de salida de un nodo son correctas?",
+                options: [
+                    { text: "El Entre Grado de un nodo (o Grado de Entrada) en un grafo dirigido es la cantidad de arcos que tienen a ese nodo como nodo de llegada.", correct: true },
+                    { text: "El Fuera de Grado de un nodo (o Grado de Salida) en un grafo dirigido es la cantidad de arcos que tienen a ese nodo como nodo de partida.", correct: true },
+                    { text: "El Grado de un nodo (tanto si el grafo es dirigido como si es no dirigido) es la cantidad de arcos incidentes a ese nodo (arcos que tienen al nodo como partida o como llegada).", correct: true },
+                    { text: "El Grado de un nodo es la cantidad de arcos no incidentes a ese nodo.", correct: false }
+                ],
+                explanation: "En grafos dirigidos, el grado total de un nodo es la suma de su grado de entrada (entre grado) y su grado de salida (fuera de grado)."
+            },
+
+            // ================= CUESTIONARIO 31 (10 PREGUNTAS) =================
+            {
+                id: "31-1",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿En qué universidad estudió, se doctoró y formó parte de su Academia de Ciencias el matemático <strong>Wilhelm Ackermann</strong>?",
+                options: [
+                    { text: "Göttingen", correct: true },
+                    { text: "Oxford", correct: false },
+                    { text: "Padova", correct: false },
+                    { text: "Stanford", correct: false }
+                ],
+                explanation: "Wilhelm Ackermann estudió y se doctoró bajo la dirección de David Hilbert en la Universidad de Göttingen (Alemania)."
+            },
+            {
+                id: "31-2",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿Cuál de los siguientes era el nombre verdadero del matemático conocido como <strong>Fibonacci</strong>, quien definió la famosa Sucesión de Fibonacci?",
+                options: [
+                    { text: "Leonardo Pisano", correct: true },
+                    { text: "Carl Gauss", correct: false },
+                    { text: "Giuseppe Peano", correct: false },
+                    { text: "Leonhard Euler", correct: false }
+                ],
+                explanation: "Fibonacci era el apodo de Leonardo de Pisa (Leonardo Pisano), matemático italiano del siglo XIII."
+            // ================= CUESTIONARIO 31 (8 PREGUNTAS) =================
+            },
+            {
+                id: "31-3",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿Cuál es la mejora esencial que el algoritmo <strong>Quicksort</strong> realiza sobre el algoritmo <strong>Bubblesort</strong> o Burbuja?",
+                options: [
+                    { text: "Quicksort acelera el cambio de posición tanto de los elementos menores como de los mayores, mientras que Bubblesort solo acelera a los mayores (o a los menores, dependiendo de la implementación).", correct: true },
+                    { text: "Quicksort primero determina qué tan desordenado está el arreglo, mientras que Bubblesort procede directamente.", correct: false },
+                    { text: "Quicksort no implementa ninguna mejora sustancial sobre Bubblesort.", correct: false },
+                    { text: "Quicksort sólo usa un ciclo para recorrer el arreglo mientras que Bubblesort usa dos.", correct: false }
+                ],
+                explanation: "En Bubblesort los elementos mal ubicados avanzan de a una casilla por pasada (efecto tortuga), mientras que Quicksort realiza intercambios a larga distancia alrededor del pivot."
+            },
+            {
+                id: "31-4",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿Cuál de los siguientes esquemas simples de pseudocódigo representa a un algoritmo planteado mediante estrategia <strong>Divide y Vencerás</strong>, pero con tiempo de ejecución <code>O(n * log(n))</code>?",
+                options: [
+                    { text: "proceso(partición): adicional() [==> O(n)]; proceso(partición/2); proceso(partición/2)", correct: true },
+                    { text: "proceso(partición): adicional() [==> O(1)]; proceso(partición/2); proceso(partición/2)", correct: false },
+                    { text: "proceso(partición): adicional() [==> O(n²)]; proceso(partición/2); proceso(partición/2)", correct: false },
+                    { text: "proceso(partición): adicional() [==> O(n³)]; proceso(partición/2); proceso(partición/2)", correct: false }
+                ],
+                explanation: "Al dividir el problema en 2 mitades (log n niveles) y realizar un trabajo lineal O(n) en cada nivel para particionar o mezclar, el tiempo total es O(n * log(n))."
+            },
+            {
+                id: "31-5",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿Cuál de las siguientes situaciones haría que el algoritmo <strong>Quicksort</strong> degenere en su peor caso en cuanto al tiempo de ejecución, de orden <code>n²</code>?",
+                options: [
+                    { text: "Que el arreglo de entrada tenga sus elementos dispuestos de tal forma que cada vez que se seleccione el pivot en cada partición, resulte que ese pivot sea siempre el menor o el mayor de la partición que se está procesando.", correct: true },
+                    { text: "El algoritmo Quicksort no tiene un peor caso O(n²). Su tiempo siempre es O(n * log(n)).", correct: false },
+                    { text: "Que el arreglo esté ya ordenado en el mismo sentido.", correct: false },
+                    { text: "Que el arreglo esté ya ordenado al revés.", correct: false }
+                ],
+                explanation: "El peor caso ocurre cuando el pivot seleccionado resulta ser sistemáticamente un extremo (mínimo o máximo) de la sublista, generando particiones de tamaño n-1 y 0."
+            },
+            {
+                id: "31-6",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿Cuál de las siguientes estrategias de obtención del pivot es la más recomendable para evitar que el algoritmo <strong>Quicksort</strong> se degrade en su peor caso <code>O(n²)</code>?",
+                options: [
+                    { text: "En cada partición, obtener el pivot por la mediana de tres (ya sea la mediana entre el primero, el último y el central; o bien la mediana entre tres elementos aleatorios de la partición).", correct: true },
+                    { text: "En cada partición, usar como pivot al valor de la última casilla.", correct: false },
+                    { text: "En cada partición, usar como pivot al valor de la primera casilla.", correct: false },
+                    { text: "En cada partición, usar como pivot al valor de la casilla central.", correct: false }
+                ],
+                explanation: "La mediana de tres evita elegir un extremo cuando el arreglo ya está ordenado o casi ordenado, manteniendo particiones balanceadas."
+            },
+            {
+                id: "31-7",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿Por qué es considerada una mala idea tomar como pivot al primer elemento (o al último) de cada partición al implementar el algoritmo <strong>Quicksort</strong>?",
+                options: [
+                    { text: "Porque de esa forma aumenta el riesgo de caer en el peor caso, o aproximarse al peor caso, si el arreglo estuviese ya ordenado o casi ordenado.", correct: true },
+                    { text: "Porque aumenta el riesgo de caer en el peor caso si el arreglo estuviese completamente desordenado.", correct: false },
+                    { text: "No es cierto que sea una mala idea; ambas alternativas son tan buenas como cualquier otra.", correct: false },
+                    { text: "Porque aumenta el riesgo si el tamaño n del arreglo fuese muy grande.", correct: false }
+                ],
+                explanation: "En arreglos ordenados o inversamente ordenados (muy frecuentes en la práctica), el primer y el último elemento son siempre el mínimo y el máximo."
+            },
+            {
+                id: "31-8",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "Considere la función presentada en clases para calcular la mediana entre el primero, el central y el último elemento de una partición de tamaño <code>n = der - izq + 1</code>. ¿Cuál es su tiempo de ejecución en notación O?",
+                code: "def get_pivot_m3(v, izq, der):\n    central = int((izq + der) / 2)\n    if v[der] < v[izq]:\n        v[der], v[izq] = v[izq], v[der]\n    if v[central] < v[izq]:\n        v[central], v[izq] = v[izq], v[central]\n    if v[central] > v[der]:\n        v[central], v[der] = v[der], v[central]\n    return v[central]",
+                options: [
+                    { text: "O(1)", correct: true },
+                    { text: "O(n²)", correct: false },
+                    { text: "O(log(n))", correct: false },
+                    { text: "O(n)", correct: false }
+                ],
+                explanation: "Realiza a lo sumo 3 comparaciones e intercambios sin ciclos ni recursión, por lo que su costo es constante O(1)."
+            },
+            {
+                id: "31-9",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿Cuál es la cantidad de niveles del árbol de invocaciones recursivas que se genera al ejecutar <strong>Quicksort</strong> para ordenar un arreglo de n elementos, en el <strong>caso promedio</strong>?",
+                options: [
+                    { text: "Altura = log(n)", correct: true },
+                    { text: "Altura = n * log(n)", correct: false },
+                    { text: "Altura = n", correct: false },
+                    { text: "Altura = n²", correct: false }
+                ],
+                explanation: "En el caso promedio las particiones se dividen de manera equilibrada en cada paso, generando un árbol de recursión de altura log₂(n)."
+            },
+            {
+                id: "31-10",
+                topic: "Cuestionario 31",
+                multiple: false,
+                text: "¿Cuál es la cantidad de niveles del árbol de invocaciones recursivas que se genera al ejecutar <strong>Quicksort</strong> para ordenar un arreglo de n elementos, en el <strong>peor caso</strong>?",
+                options: [
+                    { text: "Altura = n", correct: true },
+                    { text: "Altura = n²", correct: false },
+                    { text: "Altura = n * log(n)", correct: false },
+                    { text: "Altura = log(n)", correct: false }
+                ],
+                explanation: "Cuando cada partición deja n - 1 elementos de un lado y 0 del otro, se encadenan n niveles de llamadas recursivas."
+            },
+
+            // ================= CUESTIONARIO 32 (14 PREGUNTAS) =================
+            {
+                id: "32-1",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "¿Cuáles de las siguientes afirmaciones son correctas en relación a conceptos elementales del <strong>análisis de algoritmos</strong>?",
+                options: [
+                    { text: "Los dos factores de eficiencia más comúnmente utilizados son el tiempo de ejecución y el espacio de memoria empleado.", correct: true },
+                    { text: "El análisis del peor caso estudia el comportamiento cuando debe procesar la configuración más desfavorable posible de los datos.", correct: true },
+                    { text: "El análisis del caso promedio estudia el comportamiento cuando debe procesar una configuración de datos que llegan en forma aleatoria.", correct: true },
+                    { text: "La notación Big O se usa para expresar el rendimiento en términos de una cota inferior.", correct: false }
+                ],
+                explanation: "La notación Big O define una cota SUPERIOR asintótica (la cota inferior corresponde a Big Omega Ω)."
+            },
+            {
+                id: "32-2",
+                topic: "Cuestionario 32",
+                multiple: false,
+                text: "Dado un arreglo de n componentes... ¿qué significa decir que en el peor caso la cantidad de comparaciones que realiza el algoritmo de búsqueda secuencial es <code>O(n)</code>?",
+                options: [
+                    { text: "Significa que en el peor caso el algoritmo hará n comparaciones.", correct: true },
+                    { text: "Significa que en el peor caso el algoritmo no hará ninguna comparación.", correct: false },
+                    { text: "Significa que en el peor caso siempre hará menos de n comparaciones.", correct: false },
+                    { text: "Significa que en el peor caso hará siempre más de n comparaciones.", correct: false }
+                ],
+                explanation: "En el peor caso (ausente o en la última casilla), la búsqueda secuencial compara contra cada uno de los n elementos."
+            },
+            {
+                id: "32-3",
+                topic: "Cuestionario 32",
+                multiple: false,
+                text: "¿Cuál es la correspondencia correcta en notación Big O para: 1) Multiplicación de matrices n*n, 2) Búsqueda secuencial, 3) Selección directa, 4) Quicksort (caso promedio), 5) Acceso directo a vector y 6) Búsqueda binaria?",
+                options: [
+                    { text: "1: O(n³) | 2: O(n) | 3: O(n²) | 4: O(n*log(n)) | 5: O(1) | 6: O(log(n))", correct: true },
+                    { text: "1: O(n²) | 2: O(n) | 3: O(n³) | 4: O(n*log(n)) | 5: O(1) | 6: O(log(n))", correct: false },
+                    { text: "1: O(n³) | 2: O(log(n)) | 3: O(n²) | 4: O(n) | 5: O(1) | 6: O(n*log(n))", correct: false },
+                    { text: "1: O(n³) | 2: O(n) | 3: O(n*log(n)) | 4: O(n²) | 5: O(1) | 6: O(log(n))", correct: false }
+                ],
+                explanation: "Cada operación corresponde con su complejidad clásica: matrices O(n³), secuencial O(n), selección O(n²), Quicksort promedio O(n log n), acceso directo O(1) y binaria O(log n)."
+            },
+            {
+                id: "32-4",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "¿Cuáles de las siguientes afirmaciones son ciertas en referencia a las <strong>Estrategias de Resolución de Problemas</strong>?",
+                options: [
+                    { text: "La estrategia de Fuerza Bruta se basa en aplicar ideas intuitivas y directas, simples de codificar, pero normalmente produce algoritmos de mal rendimiento.", correct: true },
+                    { text: "La estrategia de Backtracking es de base recursiva y permite implementar soluciones de prueba y error volviendo atrás si un camino conduce a una solución incorrecta, eliminando caminos por deducción.", correct: true },
+                    { text: "La técnica de Programación Dinámica calcula los resultados de los subproblemas menores, los almacena en una tabla y los re-usa cuando vuelven a ser requeridos.", correct: true },
+                    { text: "El empleo de la Recursividad no es recomendable en ningún caso.", correct: false }
+                ],
+                explanation: "Fuerza Bruta, Backtracking y Programación Dinámica están correctamente caracterizadas; la recursividad sí es recomendable en árboles, grafos y divide y vencerás."
+            },
+            {
+                id: "32-5",
+                topic: "Cuestionario 32",
+                multiple: false,
+                text: "¿Cuál de las siguientes afirmaciones es <strong>FALSA</strong> en relación a las Estrategias de Resolución de Problemas?",
+                options: [
+                    { text: "Son técnicas y recomendaciones para el planteo de problemas que garantizan que se encontrará una solución, empleando la estrategia correcta para cada problema que se enfrente.", correct: true },
+                    { text: "Son técnicas diversas que podrían ayudar a encontrar la solución, pero sin garantía de éxito ni de eficiencia.", correct: false },
+                    { text: "Son técnicas diversas que podrían ayudar a encontrar la solución a un problema, pero sin garantía de éxito.", correct: false },
+                    { text: "Un mismo problema podría ser resuelto en base a dos o más estrategias diferentes.", correct: false }
+                ],
+                explanation: "Las estrategias algorítmicas son guías heurísticas de diseño; ninguna garantiza encontrar solución ni eficiencia para cualquier problema arbitrario."
+            },
+            {
+                id: "32-6",
+                topic: "Cuestionario 32",
+                multiple: false,
+                text: "¿Cuál es la asociación correcta entre cada problema y su estrategia más característica: 1) Ocho Reinas, 2) Gráficos fractales, 3) Árbol de expansión mínimo, 4) Alineación de secuencias, 5) Quicksort y 6) Problema del Viajante?",
+                options: [
+                    { text: "1: Backtracking | 2: Recursión | 3: Algoritmo ávido | 4: Programación dinámica | 5: Divide y vencerás | 6: Fuerza Bruta / PD", correct: true },
+                    { text: "1: Programación dinámica | 2: Recursión | 3: Divide y vencerás | 4: Backtracking | 5: Algoritmo ávido | 6: Fuerza Bruta", correct: false },
+                    { text: "1: Backtracking | 2: Algoritmo ávido | 3: Recursión | 4: Programación dinámica | 5: Divide y vencerás | 6: Fuerza Bruta", correct: false },
+                    { text: "1: Divide y vencerás | 2: Recursión | 3: Algoritmo ávido | 4: Backtracking | 5: Programación dinámica | 6: Fuerza Bruta", correct: false }
+                ],
+                explanation: "Ocho Reinas -> Backtracking; Fractales -> Recursión; MST -> Ávido (Prim/Kruskal); Alineación -> Programación Dinámica; Quicksort -> Divide y Vencerás; Viajante (TSP) -> Fuerza Bruta O(n!) / PD O(n²·2ⁿ)."
+            },
+            {
+                id: "32-7",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "¿Cuáles de los siguientes son conocidos algoritmos basados en la estrategia <strong>Divide y Vencerás</strong>?",
+                options: [
+                    { text: "Algoritmo Quicksort para ordenamiento de arreglos.", correct: true },
+                    { text: "Algoritmo Mergesort para ordenamiento de arreglos.", correct: true },
+                    { text: "Algoritmo Shellsort para ordenamiento de arreglos.", correct: false },
+                    { text: "Algoritmo Heapsort para ordenamiento de arreglos.", correct: false }
+                ],
+                explanation: "Tanto Quicksort como Mergesort dividen recursivamente el arreglo en subarreglos más pequeños y combinan sus resultados."
+            },
+            {
+                id: "32-8",
+                topic: "Cuestionario 32",
+                multiple: false,
+                text: "¿Cuál de las siguientes resume en forma correcta la idea general de la estrategia <strong>Divide y Vencerás</strong> para resolución de problemas?",
+                options: [
+                    { text: "El conjunto de n datos se divide en subconjuntos de aproximadamente el mismo tamaño (n/2, n/3, n/4, etc.). Luego se aplica recursión para procesar cada subconjunto y finalmente se unen las partes procesadas para lograr el resultado final.", correct: true },
+                    { text: "Se usa una tabla para almacenar los resultados de subproblemas ya calculados y evitar recalcularlos.", correct: false },
+                    { text: "Se aplica una regla simple que parece beneficiosa sin volver atrás ni medir consecuencias.", correct: false },
+                    { text: "Se divide en subconjuntos de cualquier tamaño arbitrario sin importar si coinciden entre sí.", correct: false }
+                ],
+                explanation: "Divide y Vencerás consta de tres fases: dividir en subproblemas balanceados, conquistar recursivamente y combinar soluciones."
+            },
+            {
+                id: "32-9",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "Considere el problema del <strong>Cambio de Monedas</strong> y la solución mediante un <strong>Algoritmo Ávido</strong> presentada en clases. ¿Cuáles afirmaciones son ciertas?",
+                options: [
+                    { text: "Sea cual sea el algoritmo que se emplee, es exigible que exista la moneda de 1 centavo, pues de otro modo no habrá solución posible para muchos valores de cambio.", correct: true },
+                    { text: "Si el Algoritmo Ávido no resuelve en forma óptima un conjunto que incluye la moneda de 1 centavo, entonces el problema no tiene solución.", correct: false },
+                    { text: "El Algoritmo Ávido falla con error de runtime si el valor x a cambiar coincide exactamente con una moneda.", correct: false },
+                    { text: "El Algoritmo Ávido garantiza siempre la solución óptima para cualquier conjunto arbitrario de monedas que incluya la de 1 centavo.", correct: false }
+                ],
+                explanation: "La moneda de 1 centavo garantiza que siempre exista al menos una forma de dar cambio, aunque para sistemas de monedas no canónicos el método ávido puede no dar la cantidad mínima de monedas."
+            },
+            {
+                id: "32-10",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "Considere el problema del <strong>Cambio de Monedas</strong> y la solución mediante <strong>Programación Dinámica</strong> presentada en clases. ¿Cuáles afirmaciones son ciertas?",
+                options: [
+                    { text: "En el algoritmo basado en Programación Dinámica no es importante si el arreglo coins está ordenado o desordenado: funcionará correctamente de todas formas.", correct: true },
+                    { text: "En el algoritmo basado en Programación Dinámica los valores de las monedas que sean mayores a x son dejados de lado y la recurrencia de cálculo no se aplica sobre ellos.", correct: true },
+                    { text: "En el algoritmo basado en Programación Dinámica, el resultado final a retornar es el que haya quedado almacenado en la casilla x del arreglo prev (o sea, en prev[x]).", correct: true },
+                    { text: "El resultado final a retornar es igual a la suma de todos los valores almacenados en prev.", correct: false }
+                ],
+                explanation: "La tabla de programación dinámica prev[0..x] guarda el mínimo de monedas para cada monto i, por lo que la respuesta final reside en prev[x]."
+            },
+            {
+                id: "32-11",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "Considere el problema de las <strong>Ocho Reinas</strong> en un tablero normal de ajedrez de <code>8 * 8</code>. ¿Cuáles afirmaciones son ciertas respecto a sus diagonales?",
+                options: [
+                    { text: "En general hay dos tipos de diagonales: las normales (orientadas como la diagonal principal) y las inversas (orientadas como la contra-diagonal).", correct: true },
+                    { text: "La cantidad total de diagonales que contiene el tablero (sumando todas las normales e inversas) es 30.", correct: true },
+                    { text: "En cada una de las diagonales normales (orientadas como la principal), es constante la resta entre el número de columna y el número de fila.", correct: true },
+                    { text: "En cada una de las diagonales inversas (orientadas como la contra-diagonal), es constante la suma entre el número de columna y el número de fila.", correct: true }
+                ],
+                explanation: "Todas son ciertas: hay 15 diagonales normales (col - fil constante) y 15 diagonales inversas (col + fil constante), sumando 30 diagonales en total."
+            },
+            {
+                id: "32-12",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "En el problema de las <strong>Ocho Reinas</strong> sobre un tablero de <code>8 * 8</code>, ¿cuáles afirmaciones son ciertas en relación a las <strong>diagonales normales</strong>?",
+                options: [
+                    { text: "El valor de la resta entre el número de columna y el número de fila de cada componente de una diagonal normal es un número constante para cada diagonal, y los posibles valores están en el intervalo [-7..7].", correct: true },
+                    { text: "Las diagonales normales pueden representarse con un arreglo qnd de 15 componentes, haciendo coincidir cada diagonal con el casillero qnd[(col - fil) + 7] (evitando así índices negativos).", correct: true },
+                    { text: "El valor de la suma (col + fil) es constante en cada diagonal normal y está en [0..14].", correct: false },
+                    { text: "Se representan con qnd[(col + fil)].", correct: false }
+                ],
+                explanation: "Como col y fil van de 0 a 7, (col - fil) varía entre -7 y +7; sumando 7 se mapea exactamente a los índices [0..14] del arreglo qnd."
+            },
+            {
+                id: "32-13",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "En el problema de las <strong>Ocho Reinas</strong> sobre un tablero de <code>8 * 8</code>, ¿cuáles afirmaciones son ciertas en relación a las <strong>diagonales inversas</strong>?",
+                options: [
+                    { text: "El valor de la suma entre el número de columna y el número de fila de cada componente de una diagonal inversa es un número constante para cada diagonal, y los posibles valores están en el intervalo [0..14].", correct: true },
+                    { text: "Las diagonales inversas pueden representarse con un arreglo qid de 15 componentes, haciendo coincidir cada diagonal con el casillero qid[(col + fil)].", correct: true },
+                    { text: "El valor de la resta (col - fil) es constante en cada diagonal inversa y está en [-7..7].", correct: false },
+                    { text: "Se representan con qid[(col - fil) + 7].", correct: false }
+                ],
+                explanation: "En las diagonales inversas (contra-diagonales), la suma (col + fil) es constante y va desde 0 (esquina 0,0) hasta 14 (esquina 7,7)."
+            },
+            {
+                id: "32-14",
+                topic: "Cuestionario 32",
+                multiple: true,
+                text: "En el problema de las <strong>Ocho Reinas</strong> se usa un arreglo <code>rc</code> de 8 componentes donde <code>rc[col] = fil</code> indica la fila de la reina en cada columna. ¿Cuáles de las siguientes configuraciones representan soluciones <strong>INCORRECTAS</strong>?",
+                options: [
+                    { text: "rc = [2, 0, 7, 4, 5, 1, 6, 3]", correct: true },
+                    { text: "rc = [3, 5, 7, 0, 5, 1, 2, 4]", correct: true },
+                    { text: "rc = [4, 7, 3, 0, 2, 5, 1, 6]", correct: false },
+                    { text: "rc = [5, 3, 6, 0, 7, 1, 4, 2]", correct: false }
+                ],
+                explanation: "En [2, 0, 7, 4, 5, 1, 6, 3], las reinas de columnas 3 (fila 4) y 4 (fila 5) comparten diagonal normal (3-4 = -1 y 4-5 = -1). En [3, 5, 7, 0, 5, 1, 2, 4], las columnas 1 y 4 repiten la fila 5."
+            }
+        ];
+
+        // Estado de la aplicación
+        let activeQuestions = [];
+        let currentIndex = 0;
+        let userAnswers = [];
+        let checkedState = [];
+        let immediateMode = true;
+        let quizFinished = false;
+        let pendingConfirmAction = null;
+
+        // Utilidad para mezclar arrays (Fisher-Yates)
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        // Iniciar cuestionario
+        function startQuiz() {
+            const mode = document.querySelector('input[name="quiz-mode"]:checked').value;
+            const selectedTopic = document.getElementById('topic-select').value;
+            immediateMode = document.getElementById('toggle-immediate').checked;
+            const shuffleQuests = document.getElementById('toggle-shuffle-questions').checked;
+            const shuffleOpts = document.getElementById('toggle-shuffle-options').checked;
+
+            let pool = [...QUESTION_BANK];
+
+            if (mode === 'topic') {
+                pool = pool.filter(q => q.topic === selectedTopic);
+            }
+
+            if (shuffleQuests) {
+                pool = shuffleArray(pool);
+            }
+
+            if (mode === 'short') {
+                pool = pool.slice(0, 15);
+            } else if (mode === 'mid') {
+                pool = pool.slice(0, 30);
+            }
+
+            // Clonar preguntas y mezclar opciones si corresponde
+            activeQuestions = pool.map(q => ({
+                ...q,
+                options: shuffleOpts ? shuffleArray(q.options) : [...q.options]
+            }));
+
+            currentIndex = 0;
+            userAnswers = activeQuestions.map(() => []);
+            checkedState = activeQuestions.map(() => false);
+            quizFinished = false;
+
+            // Actualizar UI
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('header-progress-container').classList.remove('hidden');
+            document.getElementById('btn-back-menu').classList.remove('hidden');
+
+            document.getElementById('mode-indicator-label').textContent = immediateMode
+                ? 'Feedback inmediato activado'
+                : 'Corrección al finalizar';
+
+            renderNavPills();
+            renderQuestion();
+        }
+
+        // Reintentar mismo conjunto de preguntas mezclando opciones
+        function retrySameQuiz() {
+            const shuffleOpts = document.getElementById('toggle-shuffle-options').checked;
+            activeQuestions = shuffleArray(activeQuestions).map(q => ({
+                ...q,
+                options: shuffleOpts ? shuffleArray(q.options) : [...q.options]
+            }));
+
+            currentIndex = 0;
+            userAnswers = activeQuestions.map(() => []);
+            checkedState = activeQuestions.map(() => false);
+            quizFinished = false;
+
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('header-progress-container').classList.remove('hidden');
+
+            renderNavPills();
+            renderQuestion();
+        }
+
+        // Evaluar una pregunta individual: retorna { score: 0..1, status: 'correct'|'partial'|'incorrect'|'unanswered' }
+        function evaluateQuestion(qIndex) {
+            const q = activeQuestions[qIndex];
+            const selected = userAnswers[qIndex];
+
+            if (!selected || selected.length === 0) {
+                return { score: 0, status: 'unanswered' };
+            }
+
+            if (!q.multiple) {
+                const isRight = q.options[selected[0]]?.correct === true;
+                return {
+                    score: isRight ? 1 : 0,
+                    status: isRight ? 'correct' : 'incorrect'
+                };
+            } else {
+                // Cálculo proporcional estilo Moodle para opción múltiple
+                const totalCorrect = q.options.filter(o => o.correct).length;
+                let correctPicked = 0;
+                let wrongPicked = 0;
+
+                selected.forEach(idx => {
+                    if (q.options[idx].correct) correctPicked++;
+                    else wrongPicked++;
+                });
+
+                if (correctPicked === totalCorrect && wrongPicked === 0) {
+                    return { score: 1, status: 'correct' };
+                }
+
+                const rawScore = (correctPicked - wrongPicked) / totalCorrect;
+                const clampedScore = Math.max(0, rawScore);
+
+                if (clampedScore > 0) {
+                    return { score: clampedScore, status: 'partial' };
+                }
+                return { score: 0, status: 'incorrect' };
+            }
+        }
+
+        // Renderizar píldoras de navegación superior
+        function renderNavPills() {
+            const container = document.getElementById('question-nav-pills');
+            container.innerHTML = '';
+
+            activeQuestions.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.textContent = idx + 1;
+                btn.onclick = () => {
+                    currentIndex = idx;
+                    renderQuestion();
+                };
+
+                const isCurrent = idx === currentIndex;
+                const isChecked = checkedState[idx];
+                const hasAnswer = userAnswers[idx].length > 0;
+
+                let styleClasses = 'w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center border ';
+
+                if (isChecked) {
+                    const res = evaluateQuestion(idx);
+                    if (res.status === 'correct') {
+                        styleClasses += 'bg-emerald-100 text-emerald-800 border-emerald-300 ';
+                    } else if (res.status === 'partial') {
+                        styleClasses += 'bg-amber-100 text-amber-800 border-amber-300 ';
+                    } else {
+                        styleClasses += 'bg-rose-100 text-rose-800 border-rose-300 ';
+                    }
+                } else if (hasAnswer) {
+                    styleClasses += 'bg-indigo-100 text-indigo-800 border-indigo-300 ';
+                } else {
+                    styleClasses += 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 ';
+                }
+
+                if (isCurrent) {
+                    styleClasses += 'ring-2 ring-indigo-600 ring-offset-1 ';
+                }
+
+                btn.className = styleClasses;
+                container.appendChild(btn);
+            });
+        }
+
+        // Renderizar pregunta actual
+        function renderQuestion() {
+            const q = activeQuestions[currentIndex];
+            const total = activeQuestions.length;
+            const isChecked = checkedState[currentIndex];
+            const selected = userAnswers[currentIndex];
+
+            // Actualizar barra superior
+            document.getElementById('header-progress-text').textContent = `Pregunta ${currentIndex + 1} de ${total}`;
+            const pct = Math.round(((currentIndex + 1) / total) * 100);
+            document.getElementById('header-progress-bar').style.width = `${pct}%`;
+
+            const answeredCount = userAnswers.filter(a => a.length > 0).length;
+            document.getElementById('header-score-badge').textContent = `${answeredCount}/${total} respondidas`;
+
+            // Badges
+            document.getElementById('q-number-badge').textContent = `Pregunta ${currentIndex + 1}`;
+            // Enunciado, visual SVG y código
+            document.getElementById('q-text').innerHTML = q.text;
+
+            const visualWrapper = document.getElementById('q-visual-wrapper');
+            const visualContainer = document.getElementById('q-visual');
+            if (q.visual && VISUALS[q.visual]) {
+                visualWrapper.classList.remove('hidden');
+                visualContainer.innerHTML = VISUALS[q.visual];
+            } else {
+                visualWrapper.classList.add('hidden');
+                visualContainer.innerHTML = '';
+            }
+
+            const codeWrapper = document.getElementById('q-code-wrapper');
+            if (q.code) {
+                codeWrapper.classList.remove('hidden');
+                document.getElementById('q-code').textContent = q.code;
+            } else {
+                codeWrapper.classList.add('hidden');
+            }
+
+            // Opciones
+            const optionsContainer = document.getElementById('q-options');
+            optionsContainer.innerHTML = '';
+            const letters = ['a', 'b', 'c', 'd', 'e'];
+
+            q.options.forEach((opt, optIdx) => {
+                const isSelected = selected.includes(optIdx);
+                const wrapper = document.createElement('div');
+
+                let borderClass = 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50/80';
+                let badgeHtml = '';
+
+                if (isChecked) {
+                    if (opt.correct && isSelected) {
+                        borderClass = 'border-emerald-500 bg-emerald-50/80 text-emerald-950';
+                        badgeHtml = '<span class="ml-auto text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded shrink-0">Correcta</span>';
+                    } else if (opt.correct && !isSelected) {
+                        borderClass = 'border-emerald-400 border-dashed bg-emerald-50/40 text-emerald-900';
+                        badgeHtml = '<span class="ml-auto text-xs font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded shrink-0">Era correcta</span>';
+                    } else if (!opt.correct && isSelected) {
+                        borderClass = 'border-rose-500 bg-rose-50/80 text-rose-950';
+                        badgeHtml = '<span class="ml-auto text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded shrink-0">Incorrecta</span>';
+                    } else {
+                        borderClass = 'border-slate-200 bg-slate-50/50 opacity-70';
+                    }
+                } else if (isSelected) {
+                    borderClass = 'border-indigo-600 bg-indigo-50/60 ring-1 ring-indigo-600';
+                }
+
+                wrapper.className = `flex items-start gap-3.5 p-4 rounded-xl border transition select-none ${isChecked ? 'cursor-default' : 'cursor-pointer'} ${borderClass}`;
+
+                if (!isChecked) {
+                    wrapper.onclick = () => toggleOption(optIdx);
+                }
+
+                const inputType = q.multiple ? 'checkbox' : 'radio';
+                const inputShape = q.multiple ? 'rounded' : 'rounded-full';
+
+                wrapper.innerHTML = `
+                    <div class="pt-0.5 shrink-0">
+                        <input type="${inputType}" ${isSelected ? 'checked' : ''} ${isChecked ? 'disabled' : ''}
+                            class="w-4 h-4 text-indigo-600 border-slate-300 ${inputShape} pointer-events-none">
+                    </div>
+                    <div class="text-sm sm:text-base leading-snug flex-1">
+                        <span class="font-bold text-slate-500 mr-1.5">${letters[optIdx]}.</span>
+                        <span>${opt.text}</span>
+                    </div>
+                    ${badgeHtml}
+                `;
+
+                optionsContainer.appendChild(wrapper);
+            });
+
+            // Feedback inmediato
+            const feedbackBox = document.getElementById('q-feedback');
+            if (isChecked) {
+                const res = evaluateQuestion(currentIndex);
+                feedbackBox.classList.remove('hidden');
+                if (res.status === 'correct') {
+                    feedbackBox.className = 'mt-6 p-4 sm:p-5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-950 text-sm leading-relaxed';
+                    feedbackBox.innerHTML = `<div class="font-bold text-emerald-800 mb-1">¡Correcto!</div><p>${q.explanation}</p>`;
+                } else if (res.status === 'partial') {
+                    feedbackBox.className = 'mt-6 p-4 sm:p-5 rounded-xl border border-amber-200 bg-amber-50 text-amber-950 text-sm leading-relaxed';
+                    feedbackBox.innerHTML = `<div class="font-bold text-amber-800 mb-1">Parcialmente correcta (${Math.round(res.score * 100)}%)</div><p>${q.explanation}</p>`;
+                } else {
+                    feedbackBox.className = 'mt-6 p-4 sm:p-5 rounded-xl border border-rose-200 bg-rose-50 text-rose-950 text-sm leading-relaxed';
+                    feedbackBox.innerHTML = `<div class="font-bold text-rose-800 mb-1">Incorrecta</div><p>${q.explanation}</p>`;
+                }
+            } else {
+                feedbackBox.classList.add('hidden');
+            }
+
+            // Controles de navegación
+            document.getElementById('btn-prev').disabled = currentIndex === 0;
+
+            const btnCheck = document.getElementById('btn-check');
+            const btnNext = document.getElementById('btn-next');
+            const btnFinish = document.getElementById('btn-finish');
+
+            if (immediateMode && !isChecked) {
+                btnCheck.classList.remove('hidden');
+                btnCheck.disabled = selected.length === 0;
+                btnCheck.classList.toggle('opacity-50', selected.length === 0);
+            } else {
+                btnCheck.classList.add('hidden');
+            }
+
+            if (currentIndex === total - 1) {
+                btnNext.classList.add('hidden');
+                btnFinish.classList.remove('hidden');
+            } else {
+                btnNext.classList.remove('hidden');
+                btnFinish.classList.add('hidden');
+            }
+
+            renderNavPills();
+        }
+
+        // Seleccionar / deseleccionar opción
+        function toggleOption(optIdx) {
+            if (checkedState[currentIndex]) return;
+
+            const q = activeQuestions[currentIndex];
+            let currentSel = [...userAnswers[currentIndex]];
+
+            if (q.multiple) {
+                if (currentSel.includes(optIdx)) {
+                    currentSel = currentSel.filter(i => i !== optIdx);
+                } else {
+                    currentSel.push(optIdx);
+                }
+            } else {
+                currentSel = [optIdx];
+            }
+
+            userAnswers[currentIndex] = currentSel;
+            renderQuestion();
+        }
+
+        // Comprobar respuesta actual (en modo inmediato)
+        function checkCurrentAnswer() {
+            if (userAnswers[currentIndex].length === 0) return;
+            checkedState[currentIndex] = true;
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentIndex < activeQuestions.length - 1) {
+                currentIndex++;
+                renderQuestion();
+            }
+        }
+
+        // Finalizar cuestionario y mostrar resultados
+        function finishQuiz() {
+            const unanswered = userAnswers.filter(a => a.length === 0).length;
+            if (unanswered > 0 && !quizFinished) {
+                openModal(
+                    '¿Finalizar intento?',
+                    `Todavía tenés ${unanswered} ${unanswered === 1 ? 'pregunta sin responder' : 'preguntas sin responder'}. Si finalizás ahora, contarán como 0 puntos.`,
+                    () => {
+                        closeModal();
+                        computeAndShowResults();
+                    }
+                );
+                return;
+            }
+            computeAndShowResults();
+        }
+
+        function computeAndShowResults() {
+            quizFinished = true;
+            checkedState = activeQuestions.map(() => true);
+
+            let totalScore = 0;
+            let exactCorrect = 0;
+
+            activeQuestions.forEach((_, idx) => {
+                const res = evaluateQuestion(idx);
+                totalScore += res.score;
+                if (res.status === 'correct') exactCorrect++;
+            });
+
+            const total = activeQuestions.length;
+            const percent = Math.round((totalScore / total) * 100);
+            const grade10 = ((totalScore / total) * 10).toFixed(1).replace('.0', '');
+
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('header-progress-container').classList.add('hidden');
+            document.getElementById('results-screen').classList.remove('hidden');
+
+            document.getElementById('res-grade').textContent = `${grade10} / 10`;
+            document.getElementById('res-percent').textContent = `${percent}%`;
+            document.getElementById('res-correct').textContent = `${exactCorrect} de ${total}`;
+            document.getElementById('res-incorrect').textContent = `${total - exactCorrect}`;
+
+            const pill = document.getElementById('result-status-pill');
+            if (percent >= 60) {
+                pill.textContent = 'Aprobado · Buen trabajo';
+                pill.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-3 bg-emerald-100 text-emerald-800';
+            } else {
+                pill.textContent = 'A reforzar · Seguí practicando';
+                pill.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-3 bg-rose-100 text-rose-800';
+            }
+
+            // Renderizar desglose
+            renderBreakdownCards('all');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function filterBreakdown(filterType) {
+            const btnAll = document.getElementById('filter-all-btn');
+            const btnWrong = document.getElementById('filter-wrong-btn');
+
+            if (filterType === 'all') {
+                btnAll.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition';
+                btnWrong.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition';
+            } else {
+                btnWrong.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white transition';
+                btnAll.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition';
+            }
+
+            renderBreakdownCards(filterType);
+        }
+
+        function renderBreakdownCards(filterType) {
+            const breakdown = document.getElementById('results-breakdown');
+            breakdown.innerHTML = '';
+            let shownCount = 0;
+
+            activeQuestions.forEach((q, idx) => {
+                const res = evaluateQuestion(idx);
+                if (filterType === 'wrong' && res.status === 'correct') return;
+
+                shownCount++;
+                const selected = userAnswers[idx];
+
+                let statusBadge = '';
+                if (res.status === 'correct') {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">Correcta (1/1)</span>';
+                } else if (res.status === 'partial') {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">Parcial (${res.score.toFixed(2)}/1)</span>`;
+                } else if (res.status === 'unanswered') {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded text-xs font-bold bg-slate-200 text-slate-700">Sin responder (0/1)</span>';
+                } else {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded text-xs font-bold bg-rose-100 text-rose-800">Incorrecta (0/1)</span>';
+                }
+
+                const optionsHtml = q.options.map((opt, oIdx) => {
+                    const wasPicked = selected.includes(oIdx);
+                    if (!opt.correct && !wasPicked) return '';
+
+                    if (opt.correct && wasPicked) {
+                        return `<div class="text-xs sm:text-sm p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900"><strong>✓ Tu respuesta (Correcta):</strong> ${opt.text}</div>`;
+                    }
+                    if (opt.correct && !wasPicked) {
+                        return `<div class="text-xs sm:text-sm p-2.5 rounded-lg bg-emerald-50/60 border border-dashed border-emerald-300 text-emerald-900"><strong>→ Respuesta correcta esperada:</strong> ${opt.text}</div>`;
+                    }
+                    return `<div class="text-xs sm:text-sm p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-900"><strong>✕ Tu respuesta (Incorrecta):</strong> ${opt.text}</div>`;
+                }).join('');
+
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-3';
+                card.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-sm text-slate-900">Pregunta ${idx + 1}</span>
+                            <span class="text-xs font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">${q.topic}</span>
+                        </div>
+                        ${statusBadge}
+                    </div>
+                    <p class="text-sm sm:text-base text-slate-800 font-medium">${q.text}</p>
+                    <div class="space-y-2">${optionsHtml}</div>
+                    <div class="text-xs sm:text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200/80">
+                        <strong class="text-slate-800">Explicación:</strong> ${q.explanation}
+                    </div>
+                `;
+                breakdown.appendChild(card);
+            });
+
+            if (shownCount === 0) {
+                breakdown.innerHTML = `
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center text-emerald-900 text-sm font-medium">
+                        ¡Excelente! No tuviste ninguna respuesta incorrecta ni parcial en este intento.
+                    </div>
+                `;
+            }
+        }
+
+        // Volver a pantalla inicial
+        function confirmReturnToMenu() {
+            if (!quizFinished) {
+                openModal(
+                    '¿Volver a la configuración?',
+                    'Se perderá el progreso del cuestionario actual.',
+                    () => {
+                        closeModal();
+                        returnToMenu();
+                    }
+                );
+            } else {
+                returnToMenu();
+            }
+        }
+
+        function returnToMenu() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('header-progress-container').classList.add('hidden');
+            document.getElementById('btn-back-menu').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+        }
+
+        // Manejo de Modal
+        function openModal(title, body, onConfirm) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').textContent = body;
+            pendingConfirmAction = onConfirm;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            pendingConfirmAction = null;
+        }
+
+        document.getElementById('modal-confirm-btn').onclick = () => {
+            if (pendingConfirmAction) pendingConfirmAction();
+        };
+
+        // Actualizar contadores dinámicos al cargar la página
+        (function syncDynamicCounts() {
+            const total = QUESTION_BANK.length;
+            const totalBadge = document.getElementById('total-bank-badge');
+            if (totalBadge) {
+                totalBadge.textContent = `${total} Preguntas Reales de Examen`;
+            }
+            const fullLabel = document.getElementById('full-mode-label');
+            if (fullLabel) {
+                fullLabel.textContent = `Maratón Completo (Todas las preguntas — ${total})`;
+            }
+            const select = document.getElementById('topic-select');
+            if (select) {
+                Array.from(select.options).forEach(opt => {
+                    const count = QUESTION_BANK.filter(q => q.topic === opt.value).length;
+                    opt.textContent = opt.textContent.replace(/\(\d+\s*preg\.\)/, `(${count} preg.)`);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
